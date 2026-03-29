@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Home } from "lucide-react";
 
-export default function LoginPage({ onSwitch }: { onSwitch: () => void }) {
+export default function LoginPage({ onSwitch, onShowTerms, onShowPrivacy }: { onSwitch: () => void; onShowTerms?: () => void; onShowPrivacy?: () => void }) {
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -57,6 +57,11 @@ export default function LoginPage({ onSwitch }: { onSwitch: () => void }) {
             Don't have an account?{" "}
             <button onClick={onSwitch} className="text-emerald-600 hover:underline font-medium">Sign up</button>
           </p>
+          <div className="flex justify-center gap-3 mt-4 text-xs text-gray-400">
+            <button onClick={onShowTerms} className="hover:text-emerald-600 hover:underline">Terms of Service</button>
+            <span>|</span>
+            <button onClick={onShowPrivacy} className="hover:text-emerald-600 hover:underline">Privacy Policy</button>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Home } from "lucide-react";
 
-export default function RegisterPage({ onSwitch }: { onSwitch: () => void }) {
+export default function RegisterPage({ onSwitch, onShowTerms, onShowPrivacy }: { onSwitch: () => void; onShowTerms?: () => void; onShowPrivacy?: () => void }) {
   const { register } = useAuth();
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
@@ -54,6 +54,12 @@ export default function RegisterPage({ onSwitch }: { onSwitch: () => void }) {
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
             </div>
+            <p className="text-xs text-gray-400 text-center">
+              By creating an account, you agree to our{" "}
+              <button type="button" onClick={onShowTerms} className="text-emerald-600 hover:underline">Terms of Service</button>{" "}
+              and{" "}
+              <button type="button" onClick={onShowPrivacy} className="text-emerald-600 hover:underline">Privacy Policy</button>.
+            </p>
             <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={loading}>
               {loading ? "Creating account..." : "Create Account"}
             </Button>
@@ -62,6 +68,11 @@ export default function RegisterPage({ onSwitch }: { onSwitch: () => void }) {
             Already have an account?{" "}
             <button onClick={onSwitch} className="text-emerald-600 hover:underline font-medium">Sign in</button>
           </p>
+          <div className="flex justify-center gap-3 mt-4 text-xs text-gray-400">
+            <button onClick={onShowTerms} className="hover:text-emerald-600 hover:underline">Terms of Service</button>
+            <span>|</span>
+            <button onClick={onShowPrivacy} className="hover:text-emerald-600 hover:underline">Privacy Policy</button>
+          </div>
         </CardContent>
       </Card>
     </div>

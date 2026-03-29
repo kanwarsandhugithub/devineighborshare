@@ -11,10 +11,14 @@ import MessagesPage from "./pages/MessagesPage";
 import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import RequestsPage from "./pages/RequestsPage";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
 
 function AuthGate() {
   const { user, loading } = useAuth();
   const [showLogin, setShowLogin] = useState(true);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   if (loading) {
     return (
@@ -25,10 +29,12 @@ function AuthGate() {
   }
 
   if (!user) {
+    if (showTerms) return <TermsPage onBack={() => setShowTerms(false)} />;
+    if (showPrivacy) return <PrivacyPage onBack={() => setShowPrivacy(false)} />;
     return showLogin ? (
-      <LoginPage onSwitch={() => setShowLogin(false)} />
+      <LoginPage onSwitch={() => setShowLogin(false)} onShowTerms={() => setShowTerms(true)} onShowPrivacy={() => setShowPrivacy(true)} />
     ) : (
-      <RegisterPage onSwitch={() => setShowLogin(true)} />
+      <RegisterPage onSwitch={() => setShowLogin(true)} onShowTerms={() => setShowTerms(true)} onShowPrivacy={() => setShowPrivacy(true)} />
     );
   }
 
@@ -42,6 +48,8 @@ function AuthGate() {
         <Route path="/messages/:userId" element={<ChatPage />} />
         <Route path="/requests" element={<RequestsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

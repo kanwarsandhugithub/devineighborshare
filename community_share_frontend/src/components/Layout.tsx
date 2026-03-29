@@ -1,4 +1,4 @@
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import { Home, MessageSquare, User, ClipboardList } from "lucide-react";
 
 export default function Layout() {
@@ -18,8 +18,13 @@ export default function Layout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
+    <div className="min-h-screen bg-gray-50 pb-24">
       <Outlet />
+      <div className="flex justify-center gap-3 py-3 text-xs text-gray-400 max-w-2xl mx-auto">
+        <Link to="/terms" className="hover:text-emerald-600 hover:underline">Terms of Service</Link>
+        <span>|</span>
+        <Link to="/privacy" className="hover:text-emerald-600 hover:underline">Privacy Policy</Link>
+      </div>
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around py-2 max-w-2xl mx-auto">
         {tabs.map((tab) => (
           <button
