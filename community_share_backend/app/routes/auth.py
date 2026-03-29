@@ -1,7 +1,9 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from app.schemas.schemas import UserRegister, UserLogin, Token, UserOut
+from app.schemas.schemas import UserRegister, UserLogin, Token, UserOut, ForgotPasswordRequest, ResetPasswordRequest
 from app.utils.auth import get_password_hash, verify_password, create_access_token, get_current_user_id
 from app.database import get_db
+import secrets
+from datetime import datetime, timedelta, timezone
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -30,6 +32,45 @@ async def login(user: UserLogin):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     token = create_access_token({"sub": str(row["id"])})
     return Token(access_token=token)
+
+
+@router.post("/forgot-password")
+async def forgot_password(req: ForgotPasswordRequest):
+    with get_db() as db:
+        row = db.execute("SELECT id FROM users WHERE email = ?", (req.email,)).fetchone()
+        if not row:
+            # Return success even if email not found to prevent email enumeration
+            return {"message": "If an account with that email exists, a reset link has been generated.", "reset_token": None}
+        # Generate a secure token
+        token = secrets.token_urlsafe(32)
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+        # Invalidate any existing unused tokens for this user
+        db.execute("UPDATE password_reset_tokens SET used = 1 WHERE user_id = ? AND used = 0", (row["id"],))
+        db.execute(
+            "INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
+            (row["id"], token, expires_at.isoformat()),
+        )
+    return {"message": "If an account with that email exists, a reset link has been generated.", "reset_token": token}
+
+
+@router.post("/reset-password")
+async def reset_password(req: ResetPasswordRequest):
+    if len(req.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    with get_db() as db:
+        row = db.execute(
+            "SELECT id, user_id, expires_at FROM password_reset_tokens WHERE token = ? AND used = 0",
+            (req.token,),
+        ).fetchone()
+        if not row:
+            raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+        expires_at = datetime.fromisoformat(row["expires_at"]).replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > expires_at:
+            raise HTTPException(status_code=400, detail="Reset token has expired")
+        hashed = get_password_hash(req.new_password)
+        db.execute("UPDATE users SET hashed_password = ? WHERE id = ?", (hashed, row["user_id"]))
+        db.execute("UPDATE password_reset_tokens SET used = 1 WHERE id = ?", (row["id"],))
+    return {"message": "Password has been reset successfully"}
 
 
 @router.get("/me", response_model=UserOut)
