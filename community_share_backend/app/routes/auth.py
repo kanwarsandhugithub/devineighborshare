@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from app.schemas.schemas import UserRegister, UserLogin, Token, UserOut, ForgotPasswordRequest, ResetPasswordRequest
 from app.utils.auth import get_password_hash, verify_password, create_access_token, get_current_user_id
+from app.utils.email import send_password_reset_email
 from app.database import get_db
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -37,7 +38,7 @@ async def login(user: UserLogin):
 @router.post("/forgot-password")
 async def forgot_password(req: ForgotPasswordRequest):
     with get_db() as db:
-        row = db.execute("SELECT id FROM users WHERE email = ?", (req.email,)).fetchone()
+        row = db.execute("SELECT id, full_name FROM users WHERE email = ?", (req.email,)).fetchone()
         if not row:
             # Return success even if email not found to prevent email enumeration
             return {"message": "If an account with that email exists, a reset link has been generated.", "reset_token": None}
@@ -50,6 +51,8 @@ async def forgot_password(req: ForgotPasswordRequest):
             "INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
             (row["id"], token, expires_at.isoformat()),
         )
+    # Send password reset email
+    send_password_reset_email(req.email, row["full_name"], token)
     return {"message": "If an account with that email exists, a reset link has been generated.", "reset_token": token}
 
 

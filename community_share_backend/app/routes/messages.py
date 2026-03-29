@@ -1,18 +1,19 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from typing import List
 from app.schemas.schemas import MessageCreate, MessageOut, ConversationOut
 from app.utils.auth import get_current_user_id
+from app.utils.email import send_new_message_email
 from app.database import get_db
 
 router = APIRouter(prefix="/api/messages", tags=["messages"])
 
 
 @router.post("/", response_model=MessageOut)
-async def send_message(data: MessageCreate, current_user_id: int = Depends(get_current_user_id)):
+async def send_message(data: MessageCreate, background_tasks: BackgroundTasks, current_user_id: int = Depends(get_current_user_id)):
     if data.receiver_id == current_user_id:
         raise HTTPException(status_code=400, detail="Cannot message yourself")
     with get_db() as db:
-        receiver = db.execute("SELECT id FROM users WHERE id = ?", (data.receiver_id,)).fetchone()
+        receiver = db.execute("SELECT id, email, full_name FROM users WHERE id = ?", (data.receiver_id,)).fetchone()
         if not receiver:
             raise HTTPException(status_code=404, detail="Receiver not found")
         cursor = db.execute(
@@ -27,6 +28,13 @@ async def send_message(data: MessageCreate, current_user_id: int = Depends(get_c
                WHERE m.id = ?""",
             (cursor.lastrowid,),
         ).fetchone()
+        # Send email notification to receiver
+        sender = db.execute("SELECT full_name FROM users WHERE id = ?", (current_user_id,)).fetchone()
+        if receiver:
+            background_tasks.add_task(
+                send_new_message_email, receiver["email"], receiver["full_name"],
+                sender["full_name"], data.content
+            )
     return _message_from_row(row)
 
 

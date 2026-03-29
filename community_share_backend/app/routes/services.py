@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from typing import List
 from app.schemas.schemas import ServiceCreate, ServiceUpdate, ServiceOut, ServiceBookingCreate, ServiceBookingOut, ServiceBookingUpdate
 from app.utils.auth import get_current_user_id
+from app.utils.email import send_booking_request_email, send_booking_status_email
 from app.database import get_db
 
 router = APIRouter(prefix="/api/services", tags=["services"])
@@ -107,7 +108,7 @@ async def delete_service(service_id: int, current_user_id: int = Depends(get_cur
 
 # Service bookings
 @router.post("/bookings", response_model=ServiceBookingOut)
-async def create_booking(data: ServiceBookingCreate, current_user_id: int = Depends(get_current_user_id)):
+async def create_booking(data: ServiceBookingCreate, background_tasks: BackgroundTasks, current_user_id: int = Depends(get_current_user_id)):
     with get_db() as db:
         svc = db.execute("SELECT * FROM services WHERE id = ?", (data.service_id,)).fetchone()
         if not svc:
@@ -126,6 +127,14 @@ async def create_booking(data: ServiceBookingCreate, current_user_id: int = Depe
                WHERE sb.id = ?""",
             (cursor.lastrowid,),
         ).fetchone()
+        # Send email to service provider
+        provider = db.execute("SELECT email, full_name FROM users WHERE id = ?", (svc["provider_id"],)).fetchone()
+        requester = db.execute("SELECT full_name FROM users WHERE id = ?", (current_user_id,)).fetchone()
+        if provider:
+            background_tasks.add_task(
+                send_booking_request_email, provider["email"], provider["full_name"],
+                requester["full_name"], svc["title"], data.scheduled_date, data.message
+            )
     return _booking_from_row(row)
 
 
@@ -149,7 +158,7 @@ async def get_my_bookings(current_user_id: int = Depends(get_current_user_id)):
 
 
 @router.put("/bookings/{booking_id}", response_model=ServiceBookingOut)
-async def update_booking(booking_id: int, data: ServiceBookingUpdate, current_user_id: int = Depends(get_current_user_id)):
+async def update_booking(booking_id: int, data: ServiceBookingUpdate, background_tasks: BackgroundTasks, current_user_id: int = Depends(get_current_user_id)):
     with get_db() as db:
         sb = db.execute(
             """SELECT sb.*, s.provider_id, sb.service_id FROM service_bookings sb
@@ -169,6 +178,15 @@ async def update_booking(booking_id: int, data: ServiceBookingUpdate, current_us
                WHERE sb.id = ?""",
             (booking_id,),
         ).fetchone()
+        # Send email to requester about status change
+        requester = db.execute("SELECT email, full_name FROM users WHERE id = ?", (sb["requester_id"],)).fetchone()
+        provider = db.execute("SELECT full_name FROM users WHERE id = ?", (current_user_id,)).fetchone()
+        svc = db.execute("SELECT title FROM services WHERE id = ?", (sb["service_id"],)).fetchone()
+        if requester and data.status in ("approved", "rejected", "completed"):
+            background_tasks.add_task(
+                send_booking_status_email, requester["email"], requester["full_name"],
+                svc["title"], data.status, provider["full_name"]
+            )
     return _booking_from_row(row)
 
 

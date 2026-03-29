@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from typing import List
 from app.schemas.schemas import ItemCreate, ItemUpdate, ItemOut, RentalRequestCreate, RentalRequestOut, RentalRequestUpdate
 from app.utils.auth import get_current_user_id
+from app.utils.email import send_rental_request_email, send_rental_status_email
 from app.database import get_db
 
 router = APIRouter(prefix="/api/items", tags=["items"])
@@ -139,7 +140,7 @@ async def delete_item(item_id: int, current_user_id: int = Depends(get_current_u
 
 # Rental requests
 @router.post("/rentals", response_model=RentalRequestOut)
-async def create_rental_request(data: RentalRequestCreate, current_user_id: int = Depends(get_current_user_id)):
+async def create_rental_request(data: RentalRequestCreate, background_tasks: BackgroundTasks, current_user_id: int = Depends(get_current_user_id)):
     with get_db() as db:
         item = db.execute("SELECT * FROM items WHERE id = ?", (data.item_id,)).fetchone()
         if not item:
@@ -158,6 +159,14 @@ async def create_rental_request(data: RentalRequestCreate, current_user_id: int 
                WHERE rr.id = ?""",
             (cursor.lastrowid,),
         ).fetchone()
+        # Send email to item owner
+        owner = db.execute("SELECT email, full_name FROM users WHERE id = ?", (item["owner_id"],)).fetchone()
+        requester = db.execute("SELECT full_name FROM users WHERE id = ?", (current_user_id,)).fetchone()
+        if owner:
+            background_tasks.add_task(
+                send_rental_request_email, owner["email"], owner["full_name"],
+                requester["full_name"], item["title"], data.start_date, data.end_date, data.message
+            )
     return _rental_from_row(row)
 
 
@@ -181,7 +190,7 @@ async def get_my_rental_requests(current_user_id: int = Depends(get_current_user
 
 
 @router.put("/rentals/{request_id}", response_model=RentalRequestOut)
-async def update_rental_request(request_id: int, data: RentalRequestUpdate, current_user_id: int = Depends(get_current_user_id)):
+async def update_rental_request(request_id: int, data: RentalRequestUpdate, background_tasks: BackgroundTasks, current_user_id: int = Depends(get_current_user_id)):
     with get_db() as db:
         rr = db.execute(
             """SELECT rr.*, i.owner_id, rr.item_id FROM rental_requests rr
@@ -207,6 +216,15 @@ async def update_rental_request(request_id: int, data: RentalRequestUpdate, curr
                WHERE rr.id = ?""",
             (request_id,),
         ).fetchone()
+        # Send email to requester about status change
+        requester = db.execute("SELECT email, full_name FROM users WHERE id = ?", (rr["requester_id"],)).fetchone()
+        owner = db.execute("SELECT full_name FROM users WHERE id = ?", (current_user_id,)).fetchone()
+        item = db.execute("SELECT title FROM items WHERE id = ?", (rr["item_id"],)).fetchone()
+        if requester and data.status in ("approved", "rejected", "returned"):
+            background_tasks.add_task(
+                send_rental_status_email, requester["email"], requester["full_name"],
+                item["title"], data.status, owner["full_name"]
+            )
     return _rental_from_row(row)
 
 
