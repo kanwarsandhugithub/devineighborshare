@@ -108,6 +108,7 @@ export default function HomePage() {
   const [newCommunity, setNewCommunity] = useState({ name: "", description: "", address: "" });
   const [error, setError] = useState("");
 
+  const [selectedCommunityId, setSelectedCommunityId] = useState<number | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [rentals, setRentals] = useState<RentalRequest[]>([]);
@@ -137,7 +138,11 @@ export default function HomePage() {
       const data = await api.getMyCommunities();
       setCommunities(data);
       if (data.length > 0) {
-        loadCommunityData(data[0].id);
+        const initialId = selectedCommunityId && data.some((c: Community) => c.id === selectedCommunityId)
+          ? selectedCommunityId
+          : data[0].id;
+        setSelectedCommunityId(initialId);
+        loadCommunityData(initialId);
       }
     } catch {
       // ignore
@@ -198,7 +203,7 @@ export default function HomePage() {
       await api.createRental({ item_id: selectedItem.id, ...rentalForm });
       setShowRentDialog(false);
       setRentalForm({ start_date: "", end_date: "", message: "" });
-      if (communities.length > 0) loadCommunityData(communities[0].id);
+      if (selectedCommunityId) loadCommunityData(selectedCommunityId);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed");
     }
@@ -211,7 +216,7 @@ export default function HomePage() {
       await api.createBooking({ service_id: selectedService.id, ...bookingForm });
       setShowBookDialog(false);
       setBookingForm({ scheduled_date: "", message: "" });
-      if (communities.length > 0) loadCommunityData(communities[0].id);
+      if (selectedCommunityId) loadCommunityData(selectedCommunityId);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed");
     }
@@ -224,7 +229,7 @@ export default function HomePage() {
   const handleUpdateRental = async (id: number, status: string) => {
     try {
       await api.updateRental(id, status);
-      if (communities.length > 0) loadCommunityData(communities[0].id);
+      if (selectedCommunityId) loadCommunityData(selectedCommunityId);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to update");
     }
@@ -233,7 +238,7 @@ export default function HomePage() {
   const handleUpdateBooking = async (id: number, status: string) => {
     try {
       await api.updateBooking(id, status);
-      if (communities.length > 0) loadCommunityData(communities[0].id);
+      if (selectedCommunityId) loadCommunityData(selectedCommunityId);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to update");
     }
@@ -256,10 +261,15 @@ export default function HomePage() {
         rental_id: ratingTarget.rental_id, booking_id: ratingTarget.booking_id,
       });
       setShowRatingDialog(false);
-      if (communities.length > 0) loadCommunityData(communities[0].id);
+      if (selectedCommunityId) loadCommunityData(selectedCommunityId);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to submit review");
     }
+  };
+
+  const handleSwitchCommunity = (communityId: number) => {
+    setSelectedCommunityId(communityId);
+    loadCommunityData(communityId);
   };
 
   const hasReviewedRental = (rentalId: number) => myReviews.some((r) => r.rental_id === rentalId);
@@ -269,7 +279,8 @@ export default function HomePage() {
   const incomingRentalRequests = rentals.filter((r) => r.requester_id !== user?.id);
   const myServiceBookings = bookings.filter((b) => b.requester_id === user?.id);
   const incomingServiceBookings = bookings.filter((b) => b.requester_id !== user?.id);
-  const primaryCommunity = communities.length > 0 ? communities[0] : null;
+  const primaryCommunity = communities.find((c) => c.id === selectedCommunityId) || (communities.length > 0 ? communities[0] : null);
+  const otherCommunities = communities.filter((c) => c.id !== primaryCommunity?.id);
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
@@ -355,17 +366,17 @@ export default function HomePage() {
           )}
 
           {/* Other communities */}
-          {communities.length > 1 && (
+          {otherCommunities.length > 0 && (
             <div className="space-y-2">
               <h3 className="text-sm font-medium text-gray-500">Other Communities</h3>
-              {communities.slice(1).map((c) => (
-                <Card key={c.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/community/${c.id}`)}>
+              {otherCommunities.map((c) => (
+                <Card key={c.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleSwitchCommunity(c.id)}>
                   <CardContent className="p-3 flex items-center justify-between">
                     <div>
                       <p className="font-semibold text-sm">{c.name}</p>
                       <span className="text-xs text-gray-400 flex items-center gap-1"><Users className="w-3 h-3" /> {c.member_count} members</span>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-gray-400" />
+                    <span className="text-xs text-emerald-600 font-medium">Switch</span>
                   </CardContent>
                 </Card>
               ))}
