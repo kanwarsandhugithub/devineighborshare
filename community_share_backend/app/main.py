@@ -4,7 +4,7 @@ from app.database import init_db
 from app.routes import auth, users, communities, items, services, discussions, messages, reviews, uploads
 from fastapi.staticfiles import StaticFiles
 
-app = FastAPI(title="Community Share API")
+app = FastAPI(title="ViciLend API")
 
 # Disable CORS. Do not remove this for full-stack development.
 app.add_middleware(

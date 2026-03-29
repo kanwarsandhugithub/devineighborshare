@@ -34,8 +34,8 @@ export default function RegisterPage({ onSwitch, onShowTerms, onShowPrivacy }: {
           <div className="mx-auto mb-4 w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center">
             <Home className="w-8 h-8 text-emerald-600" />
           </div>
-          <CardTitle className="text-2xl">Join Community Share</CardTitle>
-          <CardDescription>Share items & services with your neighbors</CardDescription>
+          <CardTitle className="text-2xl">Join ViciLend</CardTitle>
+          <CardDescription>Lending in my vicinity</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

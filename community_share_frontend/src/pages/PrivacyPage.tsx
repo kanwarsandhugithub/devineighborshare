@@ -14,7 +14,7 @@ export default function PrivacyPage({ onBack }: { onBack?: () => void }) {
         <p className="text-xs text-gray-400">Last updated: March 29, 2026</p>
 
         <h2 className="text-lg font-semibold text-gray-800">1. Introduction</h2>
-        <p>NeighborShare ("we", "our", "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your personal information when you use our application.</p>
+        <p>ViciLend ("we", "our", "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your personal information when you use our application.</p>
 
         <h2 className="text-lg font-semibold text-gray-800">2. Information We Collect</h2>
         <h3 className="text-md font-medium text-gray-700">Information you provide:</h3>

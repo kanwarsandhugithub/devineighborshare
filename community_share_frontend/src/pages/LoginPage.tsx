@@ -34,7 +34,7 @@ export default function LoginPage({ onSwitch, onShowTerms, onShowPrivacy }: { on
             <Home className="w-8 h-8 text-emerald-600" />
           </div>
           <CardTitle className="text-2xl">Welcome Back</CardTitle>
-          <CardDescription>Sign in to Community Share</CardDescription>
+          <CardDescription>Sign in to ViciLend</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
