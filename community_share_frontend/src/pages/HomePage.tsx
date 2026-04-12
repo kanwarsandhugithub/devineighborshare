@@ -11,6 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, DollarSign, ArrowRight, ChevronRight, ChevronLeft, Send, Star, Search, X, Shield, Pencil } from "lucide-react";
 
+const ITEM_CATEGORIES = ["tools", "electronics", "outdoor", "kitchen", "sports", "other"];
+const SERVICE_CATEGORIES = ["transportation", "handyman", "cleaning", "tutoring", "pet care", "other"];
+
 interface Community {
   id: number; name: string; description: string; address: string;
   join_code: string; member_count: number;
@@ -877,7 +880,9 @@ export default function HomePage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Category</Label>
-                <Input value={editItemForm.category} onChange={(e) => setEditItemForm({ ...editItemForm, category: e.target.value })} />
+                <select className="w-full border rounded-md p-2 text-sm" value={editItemForm.category} onChange={(e) => setEditItemForm({ ...editItemForm, category: e.target.value })}>
+                  {ITEM_CATEGORIES.map((c) => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                </select>
               </div>
               <div className="space-y-2">
                 <Label>Price per Day ($)</Label>
@@ -905,7 +910,9 @@ export default function HomePage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Category</Label>
-                <Input value={editServiceForm.category} onChange={(e) => setEditServiceForm({ ...editServiceForm, category: e.target.value })} />
+                <select className="w-full border rounded-md p-2 text-sm" value={editServiceForm.category} onChange={(e) => setEditServiceForm({ ...editServiceForm, category: e.target.value })}>
+                  {SERVICE_CATEGORIES.map((c) => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                </select>
               </div>
               <div className="space-y-2">
                 <Label>Price ($)</Label>

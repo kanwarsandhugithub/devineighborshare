@@ -100,6 +100,9 @@ export default function CommunityPage() {
   const [editExistingImageUrls, setEditExistingImageUrls] = useState<string[]>([]);
   const [editNewImageFiles, setEditNewImageFiles] = useState<File[]>([]);
   const [editNewImagePreviews, setEditNewImagePreviews] = useState<string[]>([]);
+  const [showEditService, setShowEditService] = useState(false);
+  const [editServiceForm, setEditServiceForm] = useState({ title: "", description: "", category: "transportation", price: 0 });
+  const [editServiceId, setEditServiceId] = useState<number | null>(null);
 
   // Form states
   const [newItem, setNewItem] = useState({ title: "", description: "", category: "tools", price_per_day: 0 });
@@ -284,6 +287,25 @@ export default function CommunityPage() {
       loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed");
+    }
+  };
+
+  const openEditService = (svc: Service) => {
+    setEditServiceId(svc.id);
+    setEditServiceForm({ title: svc.title, description: svc.description, category: svc.category, price: svc.price });
+    setShowEditService(true);
+  };
+
+  const handleEditService = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editServiceId) return;
+    setError("");
+    try {
+      await api.updateService(editServiceId, editServiceForm);
+      setShowEditService(false);
+      loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update service");
     }
   };
 
@@ -517,16 +539,23 @@ export default function CommunityPage() {
                         </span>
                       </div>
                     </div>
-                    {svc.provider_id !== user?.id && svc.is_available && (
-                      <div className="flex gap-1 ml-2">
-                        <Button size="sm" variant="outline" onClick={() => handleMessage(svc.provider_id)}>
-                          <Send className="w-3 h-3" />
+                    <div className="flex gap-1 ml-2">
+                      {svc.provider_id === user?.id && (
+                        <Button size="sm" variant="outline" onClick={() => openEditService(svc)}>
+                          <Edit className="w-3 h-3" />
                         </Button>
-                        <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-xs" onClick={() => { setSelectedService(svc); setShowBookDialog(true); }}>
-                          Book
-                        </Button>
-                      </div>
-                    )}
+                      )}
+                      {svc.provider_id !== user?.id && svc.is_available && (
+                        <>
+                          <Button size="sm" variant="outline" onClick={() => handleMessage(svc.provider_id)}>
+                            <Send className="w-3 h-3" />
+                          </Button>
+                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-xs" onClick={() => { setSelectedService(svc); setShowBookDialog(true); }}>
+                            Book
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -682,6 +711,37 @@ export default function CommunityPage() {
               )}
             </div>
             <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700">Save Changes</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Service Dialog */}
+      <Dialog open={showEditService} onOpenChange={setShowEditService}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Service</DialogTitle></DialogHeader>
+          <form onSubmit={handleEditService} className="space-y-4">
+            {error && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">{error}</div>}
+            <div className="space-y-2">
+              <Label>Title</Label>
+              <Input value={editServiceForm.title} onChange={(e) => setEditServiceForm({ ...editServiceForm, title: e.target.value })} required />
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea value={editServiceForm.description} onChange={(e) => setEditServiceForm({ ...editServiceForm, description: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <select className="w-full border rounded-md p-2 text-sm" value={editServiceForm.category} onChange={(e) => setEditServiceForm({ ...editServiceForm, category: e.target.value })}>
+                  {SERVICE_CATEGORIES.map((c) => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label>Price ($)</Label>
+                <Input type="number" min="0" step="0.01" value={editServiceForm.price} onChange={(e) => setEditServiceForm({ ...editServiceForm, price: Number(e.target.value) })} />
+              </div>
+            </div>
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">Save Changes</Button>
           </form>
         </DialogContent>
       </Dialog>
