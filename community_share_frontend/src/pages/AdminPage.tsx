@@ -3,8 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, ArrowLeft, Shield, Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Users, ArrowLeft, Shield, Copy, Check, ChevronDown, ChevronUp, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface Community {
   id: number;
@@ -35,6 +39,10 @@ export default function AdminPage() {
   const [expandedCommunity, setExpandedCommunity] = useState<number | null>(null);
   const [members, setMembers] = useState<Record<number, Member[]>>({});
   const [loadingMembers, setLoadingMembers] = useState<number | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newAddress, setNewAddress] = useState("");
 
   useEffect(() => {
     loadAllCommunities();
@@ -48,6 +56,21 @@ export default function AdminPage() {
       setError(err instanceof Error ? err.message : "Failed to load communities");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    try {
+      await api.createCommunity({ name: newName, description: newDescription, address: newAddress });
+      setShowCreate(false);
+      setNewName("");
+      setNewDescription("");
+      setNewAddress("");
+      loadAllCommunities();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create community");
     }
   };
 
@@ -88,6 +111,32 @@ export default function AdminPage() {
           </h1>
           <p className="text-sm text-gray-500">{communities.length} communities total</p>
         </div>
+        <Dialog open={showCreate} onOpenChange={setShowCreate}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+              <Plus className="w-4 h-4 mr-1" /> Create Community
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Create Community</DialogTitle></DialogHeader>
+            <form onSubmit={handleCreate} className="space-y-4">
+              {error && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">{error}</div>}
+              <div className="space-y-2">
+                <Label>Community Name</Label>
+                <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g. Maple Ridge HOA" required />
+              </div>
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Textarea value={newDescription} onChange={(e) => setNewDescription(e.target.value)} placeholder="What is this community about?" />
+              </div>
+              <div className="space-y-2">
+                <Label>Address</Label>
+                <Input value={newAddress} onChange={(e) => setNewAddress(e.target.value)} placeholder="Community address" />
+              </div>
+              <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700">Create Community</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {error && (
