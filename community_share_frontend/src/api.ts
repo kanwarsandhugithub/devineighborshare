@@ -99,6 +99,8 @@ export const api = {
     return request(`/api/services/community/${communityId}${qs ? `?${qs}` : ""}`);
   },
   getService: (id: number) => request(`/api/services/${id}`),
+  updateService: (id: number, data: Record<string, unknown>) =>
+    request(`/api/services/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deleteService: (id: number) => request(`/api/services/${id}`, { method: "DELETE" }),
 
   // Service bookings

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, DollarSign, ArrowRight, ChevronRight, ChevronLeft, Send, Star, Search, X, Shield } from "lucide-react";
+import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, DollarSign, ArrowRight, ChevronRight, ChevronLeft, Send, Star, Search, X, Shield, Pencil } from "lucide-react";
 
 interface Community {
   id: number; name: string; description: string; address: string;
@@ -132,6 +132,16 @@ export default function HomePage() {
   const [ratingValue, setRatingValue] = useState(0);
   const [ratingComment, setRatingComment] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Edit item state
+  const [showEditItem, setShowEditItem] = useState(false);
+  const [editItem, setEditItem] = useState<Item | null>(null);
+  const [editItemForm, setEditItemForm] = useState({ title: "", description: "", category: "", price_per_day: 0 });
+
+  // Edit service state
+  const [showEditService, setShowEditService] = useState(false);
+  const [editService, setEditService] = useState<Service | null>(null);
+  const [editServiceForm, setEditServiceForm] = useState({ title: "", description: "", category: "", price: 0 });
 
   useEffect(() => {
     loadCommunities();
@@ -271,6 +281,42 @@ export default function HomePage() {
       if (selectedCommunityId) loadCommunityData(selectedCommunityId);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to submit review");
+    }
+  };
+
+  const openEditItem = (item: Item) => {
+    setEditItem(item);
+    setEditItemForm({ title: item.title, description: item.description, category: item.category, price_per_day: item.price_per_day });
+    setShowEditItem(true);
+  };
+
+  const handleEditItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editItem) return;
+    try {
+      await api.updateItem(editItem.id, editItemForm);
+      setShowEditItem(false);
+      if (selectedCommunityId) loadCommunityData(selectedCommunityId);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to update item");
+    }
+  };
+
+  const openEditService = (svc: Service) => {
+    setEditService(svc);
+    setEditServiceForm({ title: svc.title, description: svc.description, category: svc.category, price: svc.price });
+    setShowEditService(true);
+  };
+
+  const handleEditService = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editService) return;
+    try {
+      await api.updateService(editService.id, editServiceForm);
+      setShowEditService(false);
+      if (selectedCommunityId) loadCommunityData(selectedCommunityId);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to update service");
     }
   };
 
@@ -463,16 +509,23 @@ export default function HomePage() {
                             </span>
                           </div>
                         </div>
-                        {item.owner_id !== user?.id && item.is_available && (
-                          <div className="flex gap-1 ml-2">
-                            <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => handleMessage(item.owner_id)}>
-                              <Send className="w-3 h-3" />
+                        <div className="flex gap-1 ml-2">
+                          {item.owner_id === user?.id && (
+                            <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => openEditItem(item)} title="Edit item">
+                              <Pencil className="w-3 h-3" />
                             </Button>
-                            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-xs h-7" onClick={() => { setSelectedItem(item); setShowRentDialog(true); }}>
-                              Rent
-                            </Button>
-                          </div>
-                        )}
+                          )}
+                          {item.owner_id !== user?.id && item.is_available && (
+                            <>
+                              <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => handleMessage(item.owner_id)}>
+                                <Send className="w-3 h-3" />
+                              </Button>
+                              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-xs h-7" onClick={() => { setSelectedItem(item); setShowRentDialog(true); }}>
+                                Rent
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -525,16 +578,23 @@ export default function HomePage() {
                             </span>
                           </div>
                         </div>
-                        {svc.provider_id !== user?.id && svc.is_available && (
-                          <div className="flex gap-1 ml-2">
-                            <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => handleMessage(svc.provider_id)}>
-                              <Send className="w-3 h-3" />
+                        <div className="flex gap-1 ml-2">
+                          {svc.provider_id === user?.id && (
+                            <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => openEditService(svc)} title="Edit service">
+                              <Pencil className="w-3 h-3" />
                             </Button>
-                            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-xs h-7" onClick={() => { setSelectedService(svc); setShowBookDialog(true); }}>
-                              Book
-                            </Button>
-                          </div>
-                        )}
+                          )}
+                          {svc.provider_id !== user?.id && svc.is_available && (
+                            <>
+                              <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => handleMessage(svc.provider_id)}>
+                                <Send className="w-3 h-3" />
+                              </Button>
+                              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-xs h-7" onClick={() => { setSelectedService(svc); setShowBookDialog(true); }}>
+                                Book
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -798,6 +858,62 @@ export default function HomePage() {
               Submit Rating
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Item Dialog */}
+      <Dialog open={showEditItem} onOpenChange={setShowEditItem}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Item</DialogTitle></DialogHeader>
+          <form onSubmit={handleEditItem} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Title</Label>
+              <Input value={editItemForm.title} onChange={(e) => setEditItemForm({ ...editItemForm, title: e.target.value })} required />
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea value={editItemForm.description} onChange={(e) => setEditItemForm({ ...editItemForm, description: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <Input value={editItemForm.category} onChange={(e) => setEditItemForm({ ...editItemForm, category: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Price per Day ($)</Label>
+                <Input type="number" step="0.01" min="0" value={editItemForm.price_per_day} onChange={(e) => setEditItemForm({ ...editItemForm, price_per_day: parseFloat(e.target.value) || 0 })} />
+              </div>
+            </div>
+            <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700">Save Changes</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Service Dialog */}
+      <Dialog open={showEditService} onOpenChange={setShowEditService}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Service</DialogTitle></DialogHeader>
+          <form onSubmit={handleEditService} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Title</Label>
+              <Input value={editServiceForm.title} onChange={(e) => setEditServiceForm({ ...editServiceForm, title: e.target.value })} required />
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea value={editServiceForm.description} onChange={(e) => setEditServiceForm({ ...editServiceForm, description: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <Input value={editServiceForm.category} onChange={(e) => setEditServiceForm({ ...editServiceForm, category: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Price ($)</Label>
+                <Input type="number" step="0.01" min="0" value={editServiceForm.price} onChange={(e) => setEditServiceForm({ ...editServiceForm, price: parseFloat(e.target.value) || 0 })} />
+              </div>
+            </div>
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">Save Changes</Button>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
