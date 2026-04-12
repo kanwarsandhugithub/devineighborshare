@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, DollarSign, ArrowRight, ChevronRight, ChevronLeft, Send, Star } from "lucide-react";
+import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, DollarSign, ArrowRight, ChevronRight, ChevronLeft, Send, Star, Search, X } from "lucide-react";
 
 interface Community {
   id: number; name: string; description: string; address: string;
@@ -131,6 +131,7 @@ export default function HomePage() {
   } | null>(null);
   const [ratingValue, setRatingValue] = useState(0);
   const [ratingComment, setRatingComment] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     loadCommunities();
@@ -286,6 +287,10 @@ export default function HomePage() {
   const incomingRentalRequests = rentals.filter((r) => r.requester_id !== user?.id);
   const myServiceBookings = bookings.filter((b) => b.requester_id === user?.id);
   const incomingServiceBookings = bookings.filter((b) => b.requester_id !== user?.id);
+
+  const q = searchQuery.toLowerCase().trim();
+  const filteredItems = q ? items.filter((item) => item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q) || item.category.toLowerCase().includes(q) || item.owner_name.toLowerCase().includes(q)) : items;
+  const filteredServices = q ? services.filter((svc) => svc.title.toLowerCase().includes(q) || svc.description.toLowerCase().includes(q) || svc.category.toLowerCase().includes(q) || svc.provider_name.toLowerCase().includes(q)) : services;
   const primaryCommunity = communities.find((c) => c.id === selectedCommunityId) || (communities.length > 0 ? communities[0] : null);
   const otherCommunities = communities.filter((c) => c.id !== primaryCommunity?.id);
 
@@ -390,6 +395,22 @@ export default function HomePage() {
             </div>
           )}
 
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search items and services..."
+              className="pl-9 pr-9 h-10 bg-white border-gray-200"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
           {/* Items Panel */}
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -402,11 +423,11 @@ export default function HomePage() {
                 </Button>
               )}
             </div>
-            {items.length === 0 ? (
-              <Card><CardContent className="py-4 text-center text-gray-400 text-sm">No items listed yet</CardContent></Card>
+            {filteredItems.length === 0 ? (
+              <Card><CardContent className="py-4 text-center text-gray-400 text-sm">{q ? "No items match your search" : "No items listed yet"}</CardContent></Card>
             ) : (
               <div className="space-y-2">
-                {items.slice(0, 4).map((item) => (
+                {filteredItems.slice(0, q ? 20 : 4).map((item) => (
                   <Card key={item.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-3">
                       {item.image_urls && item.image_urls.length > 0 ? (
@@ -469,11 +490,11 @@ export default function HomePage() {
                 </Button>
               )}
             </div>
-            {services.length === 0 ? (
-              <Card><CardContent className="py-4 text-center text-gray-400 text-sm">No services offered yet</CardContent></Card>
+            {filteredServices.length === 0 ? (
+              <Card><CardContent className="py-4 text-center text-gray-400 text-sm">{q ? "No services match your search" : "No services offered yet"}</CardContent></Card>
             ) : (
               <div className="space-y-2">
-                {services.slice(0, 4).map((svc) => (
+                {filteredServices.slice(0, q ? 20 : 4).map((svc) => (
                   <Card key={svc.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-3">
                       <div className="flex justify-between items-start">
