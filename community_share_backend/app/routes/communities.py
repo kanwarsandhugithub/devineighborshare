@@ -78,6 +78,35 @@ async def get_my_communities(current_user_id: int = Depends(get_current_user_id)
     ]
 
 
+@router.get("/all", response_model=List[CommunityOut])
+async def get_all_communities(current_user_id: int = Depends(get_current_user_id)):
+    """Admin-only: returns all communities. User must be admin of at least one community."""
+    with get_db() as db:
+        # Check if user is admin of any community
+        is_admin = db.execute(
+            "SELECT id FROM community_members WHERE user_id = ? AND role = 'admin' LIMIT 1",
+            (current_user_id,),
+        ).fetchone()
+        if not is_admin:
+            raise HTTPException(status_code=403, detail="Admin access required")
+        rows = db.execute(
+            """SELECT c.*,
+                      (SELECT COUNT(*) FROM community_members WHERE community_id = c.id) as member_count,
+                      (SELECT full_name FROM users WHERE id = c.created_by) as creator_name
+               FROM communities c
+               ORDER BY c.created_at DESC"""
+        ).fetchall()
+    return [
+        CommunityOut(
+            id=r["id"], name=r["name"], description=r["description"],
+            address=r["address"], join_code=r["join_code"],
+            created_by=r["created_by"], created_at=r["created_at"],
+            member_count=r["member_count"],
+        )
+        for r in rows
+    ]
+
+
 @router.get("/{community_id}", response_model=CommunityOut)
 async def get_community(community_id: int, current_user_id: int = Depends(get_current_user_id)):
     with get_db() as db:

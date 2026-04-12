@@ -13,6 +13,7 @@ import ProfilePage from "./pages/ProfilePage";
 import RequestsPage from "./pages/RequestsPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
+import AdminPage from "./pages/AdminPage";
 
 function AuthGate() {
   const { user, loading } = useAuth();
@@ -48,6 +49,7 @@ function AuthGate() {
         <Route path="/messages/:userId" element={<ChatPage />} />
         <Route path="/requests" element={<RequestsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
       </Route>

@@ -62,6 +62,7 @@ export const api = {
   joinCommunity: (join_code: string) =>
     request("/api/communities/join", { method: "POST", body: JSON.stringify({ join_code }) }),
   getMyCommunities: () => request("/api/communities/my"),
+  getAllCommunities: () => request("/api/communities/all"),
   getCommunity: (id: number) => request(`/api/communities/${id}`),
   getCommunityMembers: (id: number) => request(`/api/communities/${id}/members`),
 

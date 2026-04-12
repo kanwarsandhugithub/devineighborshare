@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, DollarSign, ArrowRight, ChevronRight, ChevronLeft, Send, Star, Search, X } from "lucide-react";
+import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, DollarSign, ArrowRight, ChevronRight, ChevronLeft, Send, Star, Search, X, Shield } from "lucide-react";
 
 interface Community {
   id: number; name: string; description: string; address: string;
@@ -302,6 +302,9 @@ export default function HomePage() {
           <p className="text-gray-500 text-sm">Hi, {user?.full_name}!</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => navigate("/admin")} title="Admin">
+            <Shield className="w-4 h-4" />
+          </Button>
           <Dialog open={showJoin} onOpenChange={setShowJoin}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm"><LogIn className="w-4 h-4 mr-1" /> Join</Button>
