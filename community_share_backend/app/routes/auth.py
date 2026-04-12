@@ -53,7 +53,7 @@ async def forgot_password(req: ForgotPasswordRequest):
         )
     # Send password reset email
     send_password_reset_email(req.email, row["full_name"], token)
-    return {"message": "If an account with that email exists, a reset link has been generated.", "reset_token": token}
+    return {"message": "If an account with that email exists, a reset link has been sent to your email."}
 
 
 @router.post("/reset-password")

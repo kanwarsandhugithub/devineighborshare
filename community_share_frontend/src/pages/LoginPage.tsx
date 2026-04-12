@@ -54,14 +54,8 @@ export default function LoginPage({ onSwitch, onShowTerms, onShowPrivacy }: { on
     setMessage("");
     setLoading(true);
     try {
-      const data = await api.forgotPassword(email);
-      if (data.reset_token) {
-        setResetToken(data.reset_token);
-        setView("reset");
-        setMessage("A reset token has been generated. Enter your new password below.");
-      } else {
-        setMessage("If an account with that email exists, a reset link has been generated.");
-      }
+      await api.forgotPassword(email);
+      setMessage("If an account with that email exists, a password reset link has been sent. Please check your email (including spam/junk folder).");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to process request");
     } finally {
