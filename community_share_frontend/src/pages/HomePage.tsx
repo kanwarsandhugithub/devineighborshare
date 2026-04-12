@@ -108,7 +108,10 @@ export default function HomePage() {
   const [newCommunity, setNewCommunity] = useState({ name: "", description: "", address: "" });
   const [error, setError] = useState("");
 
-  const [selectedCommunityId, setSelectedCommunityId] = useState<number | null>(null);
+  const [selectedCommunityId, setSelectedCommunityId] = useState<number | null>(() => {
+    const saved = localStorage.getItem('selectedCommunityId');
+    return saved ? parseInt(saved, 10) : null;
+  });
   const [items, setItems] = useState<Item[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [rentals, setRentals] = useState<RentalRequest[]>([]);
@@ -138,10 +141,13 @@ export default function HomePage() {
       const data = await api.getMyCommunities();
       setCommunities(data);
       if (data.length > 0) {
-        const initialId = selectedCommunityId && data.some((c: Community) => c.id === selectedCommunityId)
-          ? selectedCommunityId
+        const savedId = localStorage.getItem('selectedCommunityId');
+        const savedParsed = savedId ? parseInt(savedId, 10) : null;
+        const initialId = (savedParsed && data.some((c: Community) => c.id === savedParsed))
+          ? savedParsed
           : data[0].id;
         setSelectedCommunityId(initialId);
+        localStorage.setItem('selectedCommunityId', String(initialId));
         loadCommunityData(initialId);
       }
     } catch {
@@ -269,6 +275,7 @@ export default function HomePage() {
 
   const handleSwitchCommunity = (communityId: number) => {
     setSelectedCommunityId(communityId);
+    localStorage.setItem('selectedCommunityId', String(communityId));
     loadCommunityData(communityId);
   };
 
