@@ -133,12 +133,18 @@ async def get_community(community_id: int, current_user_id: int = Depends(get_cu
 @router.get("/{community_id}/members")
 async def get_members(community_id: int, current_user_id: int = Depends(get_current_user_id)):
     with get_db() as db:
+        # Allow access if user is a member of this community OR is admin of any community
         member = db.execute(
             "SELECT id FROM community_members WHERE community_id = ? AND user_id = ?",
             (community_id, current_user_id),
         ).fetchone()
         if not member:
-            raise HTTPException(status_code=403, detail="Not a member")
+            is_admin = db.execute(
+                "SELECT id FROM community_members WHERE user_id = ? AND role = 'admin' LIMIT 1",
+                (current_user_id,),
+            ).fetchone()
+            if not is_admin:
+                raise HTTPException(status_code=403, detail="Not a member")
         rows = db.execute(
             """SELECT u.id, u.full_name, u.email, u.avatar_url, cm.role, cm.joined_at
                FROM users u JOIN community_members cm ON cm.user_id = u.id

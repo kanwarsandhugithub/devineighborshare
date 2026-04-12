@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, ArrowLeft, Shield, Copy, Check } from "lucide-react";
+import { Users, ArrowLeft, Shield, Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Community {
@@ -17,12 +17,24 @@ interface Community {
   created_at: string;
 }
 
+interface Member {
+  id: number;
+  full_name: string;
+  email: string;
+  avatar_url: string | null;
+  role: string;
+  joined_at: string;
+}
+
 export default function AdminPage() {
   const navigate = useNavigate();
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [expandedCommunity, setExpandedCommunity] = useState<number | null>(null);
+  const [members, setMembers] = useState<Record<number, Member[]>>({});
+  const [loadingMembers, setLoadingMembers] = useState<number | null>(null);
 
   useEffect(() => {
     loadAllCommunities();
@@ -43,6 +55,25 @@ export default function AdminPage() {
     navigator.clipboard.writeText(code);
     setCopiedCode(code);
     setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  const toggleMembers = async (communityId: number) => {
+    if (expandedCommunity === communityId) {
+      setExpandedCommunity(null);
+      return;
+    }
+    setExpandedCommunity(communityId);
+    if (!members[communityId]) {
+      setLoadingMembers(communityId);
+      try {
+        const data = await api.getCommunityMembers(communityId);
+        setMembers((prev) => ({ ...prev, [communityId]: data }));
+      } catch {
+        // ignore
+      } finally {
+        setLoadingMembers(null);
+      }
+    }
   };
 
   return (
@@ -112,6 +143,56 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Members toggle */}
+                <button
+                  onClick={() => toggleMembers(c.id)}
+                  className="flex items-center gap-1 text-sm text-emerald-600 hover:text-emerald-700 mt-3 font-medium"
+                >
+                  {expandedCommunity === c.id ? (
+                    <ChevronUp className="w-4 h-4" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" />
+                  )}
+                  {expandedCommunity === c.id ? "Hide Members" : "Show Members"}
+                </button>
+
+                {/* Members list */}
+                {expandedCommunity === c.id && (
+                  <div className="mt-3 border-t pt-3">
+                    {loadingMembers === c.id ? (
+                      <p className="text-xs text-gray-400 text-center py-2">Loading members...</p>
+                    ) : members[c.id] && members[c.id].length > 0 ? (
+                      <div className="space-y-2">
+                        {members[c.id].map((m) => (
+                          <div key={m.id} className="flex items-center gap-3 py-1.5">
+                            {m.avatar_url ? (
+                              <img src={m.avatar_url} alt={m.full_name} className="w-8 h-8 rounded-full object-cover border border-gray-200" />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm">
+                                {m.full_name?.charAt(0)?.toUpperCase()}
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-sm truncate">{m.full_name}</span>
+                                {m.role === "admin" && (
+                                  <Badge className="bg-emerald-100 text-emerald-700 text-xs px-1.5 py-0">Admin</Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-400 truncate">{m.email}</p>
+                            </div>
+                            <span className="text-xs text-gray-400 whitespace-nowrap">
+                              Joined {new Date(m.joined_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400 text-center py-2">No members found</p>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
