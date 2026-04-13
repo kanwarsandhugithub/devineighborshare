@@ -92,4 +92,5 @@ async def get_me(user_id: int = Depends(get_current_user_id)):
         bio=row["bio"],
         created_at=row["created_at"],
         avg_rating=round(avg["avg_rating"], 1) if avg["avg_rating"] else None,
+        is_super_admin=bool(row["is_super_admin"]) if "is_super_admin" in row.keys() else False,
     )

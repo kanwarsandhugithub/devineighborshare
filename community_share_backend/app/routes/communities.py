@@ -80,15 +80,14 @@ async def get_my_communities(current_user_id: int = Depends(get_current_user_id)
 
 @router.get("/all", response_model=List[CommunityOut])
 async def get_all_communities(current_user_id: int = Depends(get_current_user_id)):
-    """Admin-only: returns all communities. User must be admin of at least one community."""
+    """Super-admin only: returns all communities."""
     with get_db() as db:
-        # Check if user is admin of any community
-        is_admin = db.execute(
-            "SELECT id FROM community_members WHERE user_id = ? AND role = 'admin' LIMIT 1",
+        is_super = db.execute(
+            "SELECT is_super_admin FROM users WHERE id = ?",
             (current_user_id,),
         ).fetchone()
-        if not is_admin:
-            raise HTTPException(status_code=403, detail="Admin access required")
+        if not is_super or not is_super["is_super_admin"]:
+            raise HTTPException(status_code=403, detail="Super admin access required")
         rows = db.execute(
             """SELECT c.*,
                       (SELECT COUNT(*) FROM community_members WHERE community_id = c.id) as member_count,
@@ -109,14 +108,14 @@ async def get_all_communities(current_user_id: int = Depends(get_current_user_id
 
 @router.delete("/{community_id}")
 async def delete_community(community_id: int, current_user_id: int = Depends(get_current_user_id)):
-    """Admin-only: delete a community and all its related data."""
+    """Super-admin only: delete a community and all its related data."""
     with get_db() as db:
-        is_admin = db.execute(
-            "SELECT id FROM community_members WHERE user_id = ? AND role = 'admin' LIMIT 1",
+        is_super = db.execute(
+            "SELECT is_super_admin FROM users WHERE id = ?",
             (current_user_id,),
         ).fetchone()
-        if not is_admin:
-            raise HTTPException(status_code=403, detail="Admin access required")
+        if not is_super or not is_super["is_super_admin"]:
+            raise HTTPException(status_code=403, detail="Super admin access required")
         community = db.execute("SELECT * FROM communities WHERE id = ?", (community_id,)).fetchone()
         if not community:
             raise HTTPException(status_code=404, detail="Community not found")
@@ -161,11 +160,11 @@ async def get_members(community_id: int, current_user_id: int = Depends(get_curr
             (community_id, current_user_id),
         ).fetchone()
         if not member:
-            is_admin = db.execute(
-                "SELECT id FROM community_members WHERE user_id = ? AND role = 'admin' LIMIT 1",
+            is_super = db.execute(
+                "SELECT is_super_admin FROM users WHERE id = ?",
                 (current_user_id,),
             ).fetchone()
-            if not is_admin:
+            if not is_super or not is_super["is_super_admin"]:
                 raise HTTPException(status_code=403, detail="Not a member")
         rows = db.execute(
             """SELECT u.id, u.full_name, u.email, u.avatar_url, cm.role, cm.joined_at

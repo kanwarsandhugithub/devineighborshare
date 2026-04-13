@@ -351,9 +351,11 @@ export default function HomePage() {
           <p className="text-gray-500 text-sm">Hi, {user?.full_name}!</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => navigate("/admin")} title="Admin">
-            <Shield className="w-4 h-4" />
-          </Button>
+          {user?.is_super_admin && (
+            <Button variant="outline" size="sm" onClick={() => navigate("/admin")} title="Admin">
+              <Shield className="w-4 h-4" />
+            </Button>
+          )}
           <Dialog open={showJoin} onOpenChange={setShowJoin}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm"><LogIn className="w-4 h-4 mr-1" /> Join</Button>

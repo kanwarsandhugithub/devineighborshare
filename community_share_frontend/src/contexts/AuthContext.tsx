@@ -9,6 +9,7 @@ interface User {
   avatar_url: string | null;
   bio: string;
   avg_rating: number | null;
+  is_super_admin: boolean;
 }
 
 interface AuthContextType {

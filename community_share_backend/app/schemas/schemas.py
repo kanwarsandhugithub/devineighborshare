@@ -39,6 +39,7 @@ class UserOut(BaseModel):
     bio: str = ""
     created_at: Optional[str] = None
     avg_rating: Optional[float] = None
+    is_super_admin: bool = False
 
 
 class UserUpdate(BaseModel):

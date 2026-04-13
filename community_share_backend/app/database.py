@@ -173,3 +173,9 @@ def init_db():
             db.execute("ALTER TABLE reviews ADD COLUMN booking_id INTEGER REFERENCES service_bookings(id)")
         except Exception:
             pass
+        try:
+            db.execute("ALTER TABLE users ADD COLUMN is_super_admin INTEGER DEFAULT 0")
+        except Exception:
+            pass
+        # Ensure kanwarsandhu@gmail.com is super admin
+        db.execute("UPDATE users SET is_super_admin = 1 WHERE email = 'kanwarsandhu@gmail.com'")
