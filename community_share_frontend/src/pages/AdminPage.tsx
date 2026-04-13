@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, ArrowLeft, Shield, Copy, Check, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { Users, ArrowLeft, Shield, Copy, Check, ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,6 +78,16 @@ export default function AdminPage() {
     navigator.clipboard.writeText(code);
     setCopiedCode(code);
     setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  const handleDelete = async (community: Community) => {
+    if (!confirm(`Are you sure you want to delete "${community.name}"? This will remove all items, services, discussions, and members. This cannot be undone.`)) return;
+    try {
+      await api.deleteCommunity(community.id);
+      loadAllCommunities();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete community");
+    }
   };
 
   const toggleMembers = async (communityId: number) => {
@@ -191,6 +201,9 @@ export default function AdminPage() {
                       </span>
                     </div>
                   </div>
+                  <Button size="sm" variant="outline" className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0" onClick={() => handleDelete(c)} title="Delete community">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
 
                 {/* Members toggle */}

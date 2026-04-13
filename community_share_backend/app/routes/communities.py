@@ -107,6 +107,28 @@ async def get_all_communities(current_user_id: int = Depends(get_current_user_id
     ]
 
 
+@router.delete("/{community_id}")
+async def delete_community(community_id: int, current_user_id: int = Depends(get_current_user_id)):
+    """Admin-only: delete a community and all its related data."""
+    with get_db() as db:
+        is_admin = db.execute(
+            "SELECT id FROM community_members WHERE user_id = ? AND role = 'admin' LIMIT 1",
+            (current_user_id,),
+        ).fetchone()
+        if not is_admin:
+            raise HTTPException(status_code=403, detail="Admin access required")
+        community = db.execute("SELECT * FROM communities WHERE id = ?", (community_id,)).fetchone()
+        if not community:
+            raise HTTPException(status_code=404, detail="Community not found")
+        # Delete related data
+        db.execute("DELETE FROM community_members WHERE community_id = ?", (community_id,))
+        db.execute("DELETE FROM items WHERE community_id = ?", (community_id,))
+        db.execute("DELETE FROM services WHERE community_id = ?", (community_id,))
+        db.execute("DELETE FROM discussions WHERE community_id = ?", (community_id,))
+        db.execute("DELETE FROM communities WHERE id = ?", (community_id,))
+    return {"detail": "Community deleted"}
+
+
 @router.get("/{community_id}", response_model=CommunityOut)
 async def get_community(community_id: int, current_user_id: int = Depends(get_current_user_id)):
     with get_db() as db:
