@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from app.schemas.schemas import UserRegister, UserLogin, Token, UserOut, ForgotPasswordRequest, ResetPasswordRequest
-from app.utils.auth import get_password_hash, verify_password, create_access_token, get_current_user_id
+from app.utils.auth import get_password_hash, verify_password, create_access_token, get_current_user_id, get_current_user_email
 from app.utils.email import send_password_reset_email
 from app.database import get_db
 import secrets
@@ -28,10 +28,10 @@ async def register(user: UserRegister):
 @router.post("/login", response_model=Token)
 async def login(user: UserLogin):
     with get_db() as db:
-        row = db.execute("SELECT id, hashed_password FROM users WHERE email = ?", (user.email,)).fetchone()
+        row = db.execute("SELECT id, hashed_password, email FROM users WHERE email = ?", (user.email,)).fetchone()
     if not row or not verify_password(user.password, row["hashed_password"]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
-    token = create_access_token({"sub": str(row["id"])})
+    token = create_access_token({"sub": str(row["id"]), "email": row["email"]})
     return Token(access_token=token)
 
 

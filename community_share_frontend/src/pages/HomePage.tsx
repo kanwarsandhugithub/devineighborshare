@@ -373,10 +373,11 @@ export default function HomePage() {
             </DialogContent>
           </Dialog>
 
-          <Dialog open={showCreate} onOpenChange={setShowCreate}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-1" /> Create</Button>
-            </DialogTrigger>
+          {user?.email === "kanwarsandhu@gmail.com" && (
+            <Dialog open={showCreate} onOpenChange={setShowCreate}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-1" /> Create</Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Create Community</DialogTitle></DialogHeader>
               <form onSubmit={handleCreate} className="space-y-4">
@@ -397,6 +398,7 @@ export default function HomePage() {
               </form>
             </DialogContent>
           </Dialog>
+          )}
         </div>
       </div>
 

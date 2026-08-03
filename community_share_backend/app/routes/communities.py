@@ -2,14 +2,18 @@ import secrets
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from app.schemas.schemas import CommunityCreate, CommunityOut, CommunityJoin
-from app.utils.auth import get_current_user_id
+from app.utils.auth import get_current_user_id, get_current_user_email
 from app.database import get_db
 
 router = APIRouter(prefix="/api/communities", tags=["communities"])
 
 
 @router.post("/", response_model=CommunityOut)
-async def create_community(data: CommunityCreate, current_user_id: int = Depends(get_current_user_id)):
+async def create_community(data: CommunityCreate, current_user_id: int = Depends(get_current_user_id), current_user_email: str = Depends(get_current_user_email)):
+    # Only allow kanwarsandhu@gmail.com to create communities
+    if current_user_email != "kanwarsandhu@gmail.com":
+        raise HTTPException(status_code=403, detail="Only admin can create communities")
+    
     join_code = secrets.token_urlsafe(6)
     with get_db() as db:
         cursor = db.execute(
