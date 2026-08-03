@@ -3,5 +3,8 @@
     "env": {
       "VITE_API_URL": "https://vicilend-backend.fly.dev"
     }
+  },
+  "env": {
+    "VITE_API_URL": "https://vicilend-backend.fly.dev"
   }
 }
