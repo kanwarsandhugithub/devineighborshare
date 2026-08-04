@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api";
+import { useAuth } from "../contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, ArrowLeft, Shield, Copy, Check, ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
@@ -32,6 +33,7 @@ interface Member {
 
 export default function AdminPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -43,6 +45,13 @@ export default function AdminPage() {
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [newAddress, setNewAddress] = useState("");
+
+  // Redirect non-admin users
+  useEffect(() => {
+    if (user && user.email !== "kanwarsandhu@gmail.com") {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     loadAllCommunities();
