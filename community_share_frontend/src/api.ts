@@ -64,6 +64,8 @@ export const api = {
   getMyCommunities: () => request("/api/communities/my"),
   getAllCommunities: () => request("/api/communities/all"),
   deleteCommunity: (id: number) => request(`/api/communities/${id}`, { method: "DELETE" }),
+  updateCommunity: (id: number, data: { join_code: string }) =>
+    request(`/api/communities/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   getCommunity: (id: number) => request(`/api/communities/${id}`),
   getCommunityMembers: (id: number) => request(`/api/communities/${id}/members`),
 

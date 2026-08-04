@@ -4,7 +4,7 @@ import { api } from "../api";
 import { useAuth } from "../contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, ArrowLeft, Shield, Copy, Check, ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
+import { Users, ArrowLeft, Shield, Copy, Check, ChevronDown, ChevronUp, Plus, Trash2, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,6 +42,9 @@ export default function AdminPage() {
   const [members, setMembers] = useState<Record<number, Member[]>>({});
   const [loadingMembers, setLoadingMembers] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [showEditCode, setShowEditCode] = useState(false);
+  const [editingCommunity, setEditingCommunity] = useState<Community | null>(null);
+  const [newJoinCode, setNewJoinCode] = useState("");
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [newAddress, setNewAddress] = useState("");
@@ -96,6 +99,27 @@ export default function AdminPage() {
       loadAllCommunities();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete community");
+    }
+  };
+
+  const handleEditCode = (community: Community) => {
+    setEditingCommunity(community);
+    setNewJoinCode(community.join_code);
+    setShowEditCode(true);
+  };
+
+  const handleUpdateCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCommunity) return;
+    setError("");
+    try {
+      await api.updateCommunity(editingCommunity.id, { join_code: newJoinCode });
+      setShowEditCode(false);
+      setEditingCommunity(null);
+      setNewJoinCode("");
+      loadAllCommunities();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update join code");
     }
   };
 
@@ -156,6 +180,31 @@ export default function AdminPage() {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Join Code Dialog */}
+        <Dialog open={showEditCode} onOpenChange={setShowEditCode}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Change Join Code</DialogTitle></DialogHeader>
+            <form onSubmit={handleUpdateCode} className="space-y-4">
+              {error && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">{error}</div>}
+              <div className="space-y-2">
+                <Label>New Join Code</Label>
+                <Input 
+                  value={newJoinCode} 
+                  onChange={(e) => setNewJoinCode(e.target.value)} 
+                  placeholder="Enter new join code" 
+                  required 
+                  className="font-mono"
+                />
+                <p className="text-xs text-gray-500">This will change the code members use to join the community.</p>
+              </div>
+              <div className="flex gap-2">
+                <Button type="submit" className="flex-1 bg-emerald-600 hover:bg-emerald-700">Update Code</Button>
+                <Button type="button" variant="outline" onClick={() => setShowEditCode(false)} className="flex-1">Cancel</Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {error && (
@@ -203,6 +252,13 @@ export default function AdminPage() {
                           ) : (
                             <Copy className="w-3.5 h-3.5" />
                           )}
+                        </button>
+                        <button
+                          onClick={() => handleEditCode(c)}
+                          className="text-gray-400 hover:text-emerald-600 transition-colors"
+                          title="Change join code"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                       <span className="text-xs text-gray-400">

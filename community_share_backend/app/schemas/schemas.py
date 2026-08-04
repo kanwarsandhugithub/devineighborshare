@@ -71,6 +71,10 @@ class CommunityJoin(BaseModel):
     join_code: str
 
 
+class CommunityUpdate(BaseModel):
+    join_code: str
+
+
 # Items
 class ItemCreate(BaseModel):
     title: str

@@ -1,7 +1,7 @@
 import secrets
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
-from app.schemas.schemas import CommunityCreate, CommunityOut, CommunityJoin
+from app.schemas.schemas import CommunityCreate, CommunityOut, CommunityJoin, CommunityUpdate
 from app.utils.auth import get_current_user_id, get_current_user_email
 from app.database import get_db
 
@@ -130,6 +130,35 @@ async def delete_community(community_id: int, current_user_id: int = Depends(get
         db.execute("DELETE FROM discussions WHERE community_id = ?", (community_id,))
         db.execute("DELETE FROM communities WHERE id = ?", (community_id,))
     return {"detail": "Community deleted"}
+
+
+@router.put("/{community_id}")
+async def update_community(community_id: int, data: CommunityUpdate, current_user_id: int = Depends(get_current_user_id)):
+    """Super-admin only: update community join code."""
+    with get_db() as db:
+        is_super = db.execute(
+            "SELECT is_super_admin FROM users WHERE id = ?",
+            (current_user_id,),
+        ).fetchone()
+        if not is_super or not is_super["is_super_admin"]:
+            raise HTTPException(status_code=403, detail="Super admin access required")
+        
+        # Check if join code already exists
+        existing = db.execute("SELECT id FROM communities WHERE join_code = ? AND id != ?", (data.join_code, community_id)).fetchone()
+        if existing:
+            raise HTTPException(status_code=400, detail="Join code already in use")
+        
+        db.execute("UPDATE communities SET join_code = ? WHERE id = ?", (data.join_code, community_id))
+        row = db.execute("SELECT * FROM communities WHERE id = ?", (community_id,)).fetchone()
+        count = db.execute(
+            "SELECT COUNT(*) as cnt FROM community_members WHERE community_id = ?", (community_id,)
+        ).fetchone()["cnt"]
+    return CommunityOut(
+        id=row["id"], name=row["name"], description=row["description"],
+        address=row["address"], join_code=row["join_code"],
+        created_by=row["created_by"], created_at=row["created_at"],
+        member_count=count,
+    )
 
 
 @router.get("/{community_id}", response_model=CommunityOut)
