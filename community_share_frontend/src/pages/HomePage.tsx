@@ -122,6 +122,8 @@ export default function HomePage() {
 
   const [showRentDialog, setShowRentDialog] = useState(false);
   const [showBookDialog, setShowBookDialog] = useState(false);
+  const [showWaiverDialog, setShowWaiverDialog] = useState(false);
+  const [waiverType, setWaiverType] = useState<"rental" | "booking" | null>(null);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [rentalForm, setRentalForm] = useState({ start_date: "", end_date: "", message: "" });
@@ -219,26 +221,44 @@ export default function HomePage() {
   const handleRent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedItem) return;
+    setShowRentDialog(false);
+    setWaiverType("rental");
+    setShowWaiverDialog(true);
+  };
+
+  const handleBook = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedService) return;
+    setShowBookDialog(false);
+    setWaiverType("booking");
+    setShowWaiverDialog(true);
+  };
+
+  const handleWaiverAccept = async () => {
     try {
-      await api.createRental({ item_id: selectedItem.id, ...rentalForm });
-      setShowRentDialog(false);
-      setRentalForm({ start_date: "", end_date: "", message: "" });
+      if (waiverType === "rental" && selectedItem) {
+        await api.createRental({ item_id: selectedItem.id, ...rentalForm });
+        setRentalForm({ start_date: "", end_date: "", message: "" });
+      } else if (waiverType === "booking" && selectedService) {
+        await api.createBooking({ service_id: selectedService.id, ...bookingForm });
+        setBookingForm({ scheduled_date: "", message: "" });
+      }
+      setShowWaiverDialog(false);
+      setWaiverType(null);
       if (selectedCommunityId) loadCommunityData(selectedCommunityId);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed");
     }
   };
 
-  const handleBook = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedService) return;
-    try {
-      await api.createBooking({ service_id: selectedService.id, ...bookingForm });
-      setShowBookDialog(false);
-      setBookingForm({ scheduled_date: "", message: "" });
-      if (selectedCommunityId) loadCommunityData(selectedCommunityId);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed");
+  const handleWaiverCancel = () => {
+    setShowWaiverDialog(false);
+    setWaiverType(null);
+    // Reopen the original dialog
+    if (waiverType === "rental") {
+      setShowRentDialog(true);
+    } else if (waiverType === "booking") {
+      setShowBookDialog(true);
     }
   };
 
@@ -874,6 +894,35 @@ export default function HomePage() {
             <Button onClick={handleSubmitRating} disabled={ratingValue === 0} className="w-full bg-amber-600 hover:bg-amber-700">
               Submit Rating
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Liability Waiver Dialog */}
+      <Dialog open={showWaiverDialog} onOpenChange={setShowWaiverDialog}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Liability Waiver</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <p className="text-sm text-amber-800 font-medium mb-2">Please read and accept before proceeding:</p>
+              <p className="text-sm text-gray-700 mb-2">
+                {waiverType === "rental" 
+                  ? "I acknowledge that I am borrowing this item at my own risk. I understand that ViciLend and the item owner are not responsible for any injury, damage, or loss that may occur while using this item."
+                  : "I acknowledge that I am requesting this service at my own risk. I understand that ViciLend and the service provider are not responsible for any injury, damage, or loss that may occur during the provision of this service."
+                }
+              </p>
+              <p className="text-sm text-gray-700">
+                I agree to use the item/service responsibly and indemnify ViciLend, the owner/provider, and the community from any claims arising from my use.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleWaiverAccept} className="flex-1 bg-emerald-600 hover:bg-emerald-700">
+                I Accept
+              </Button>
+              <Button onClick={handleWaiverCancel} variant="outline" className="flex-1">
+                Cancel
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
