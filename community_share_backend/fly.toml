@@ -4,10 +4,6 @@ primary_region = "sjc"
 [build]
   dockerfile = "Dockerfile"
 
-[env]
-  PORT = "8000"
-  DATABASE_PATH = "/data/app.db"
-
 [mounts]
   source = "vicilend_data"
   destination = "/data"

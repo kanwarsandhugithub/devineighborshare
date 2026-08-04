@@ -3,6 +3,6 @@
   "outputDirectory": "community_share_frontend/dist",
   "installCommand": "cd community_share_frontend && npm install",
   "env": {
-    "VITE_API_URL": "https://vicilend-backend.fly.dev"
+    "VITE_API_URL": "https://api.vicinityshare.com"
   }
 }

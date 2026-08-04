@@ -1,4 +1,4 @@
-const API_URL = "https://vicilend-backend.fly.dev";
+const API_URL = "https://api.vicinityshare.com";
 
 function getToken(): string | null {
   return localStorage.getItem("token");
