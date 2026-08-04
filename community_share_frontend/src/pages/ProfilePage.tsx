@@ -144,10 +144,9 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-2 mb-2">
                   <Avatar className="w-6 h-6">
                     {r.reviewer_avatar_url ? (
-                      <img src={r.reviewer_avatar_url} alt={r.reviewer_name} className="w-6 h-6 rounded-full object-cover" />
-                    ) : (
-                      <AvatarFallback className="text-xs bg-gray-100">{getInitials(r.reviewer_name)}</AvatarFallback>
-                    )}
+                      <AvatarImage src={r.reviewer_avatar_url} alt={r.reviewer_name} />
+                    ) : null}
+                    <AvatarFallback className="text-xs bg-gray-100">{getInitials(r.reviewer_name)}</AvatarFallback>
                   </Avatar>
                   <span className="text-sm font-medium">{r.reviewer_name}</span>
                   <div className="flex items-center gap-0.5 ml-auto">

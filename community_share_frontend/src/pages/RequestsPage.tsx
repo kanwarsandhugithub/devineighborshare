@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,7 @@ function StarRating({ rating, onRate, size = "md" }: { rating: number; onRate?: 
 }
 
 export default function RequestsPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [rentals, setRentals] = useState<RentalRequest[]>([]);
   const [bookings, setBookings] = useState<ServiceBooking[]>([]);
@@ -319,21 +321,26 @@ export default function RequestsPage() {
                           <StatusBadge status={r.status} />
                         </div>
                         <div className="flex items-center gap-2 mb-1">
-                          {r.requester_avatar_url ? (
-                            <img src={r.requester_avatar_url} alt={r.requester_name} className="w-8 h-8 rounded-full object-cover border border-gray-200" />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
-                              {r.requester_name?.charAt(0)?.toUpperCase()}
-                            </div>
-                          )}
-                          <div>
-                            <span className="text-xs font-medium text-gray-700">{r.requester_name}</span>
-                            {r.requester_avg_rating != null && (
-                              <span className="ml-1 text-xs text-amber-600 inline-flex items-center gap-0.5">
-                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {r.requester_avg_rating}
-                              </span>
+                          <button 
+                            onClick={() => navigate(`/profile/${r.requester_id}`)}
+                            className="flex items-center gap-2 hover:opacity-70 transition-opacity"
+                          >
+                            {r.requester_avatar_url ? (
+                              <img src={r.requester_avatar_url} alt={r.requester_name} className="w-8 h-8 rounded-full object-cover border border-gray-200" />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
+                                {r.requester_name?.charAt(0)?.toUpperCase()}
+                              </div>
                             )}
-                          </div>
+                            <div>
+                              <span className="text-xs font-medium text-gray-700 hover:text-emerald-600">{r.requester_name}</span>
+                              {r.requester_avg_rating != null && (
+                                <span className="ml-1 text-xs text-amber-600 inline-flex items-center gap-0.5">
+                                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {r.requester_avg_rating}
+                                </span>
+                              )}
+                            </div>
+                          </button>
                         </div>
                         <p className="text-xs text-gray-500 mb-1">
                           {r.start_date} to {r.end_date}
@@ -395,21 +402,26 @@ export default function RequestsPage() {
                           <StatusBadge status={b.status} />
                         </div>
                         <div className="flex items-center gap-2 mb-1">
-                          {b.requester_avatar_url ? (
-                            <img src={b.requester_avatar_url} alt={b.requester_name} className="w-8 h-8 rounded-full object-cover border border-gray-200" />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
-                              {b.requester_name?.charAt(0)?.toUpperCase()}
-                            </div>
-                          )}
-                          <div>
-                            <span className="text-xs font-medium text-gray-700">{b.requester_name}</span>
-                            {b.requester_avg_rating != null && (
-                              <span className="ml-1 text-xs text-amber-600 inline-flex items-center gap-0.5">
-                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {b.requester_avg_rating}
-                              </span>
+                          <button 
+                            onClick={() => navigate(`/profile/${b.requester_id}`)}
+                            className="flex items-center gap-2 hover:opacity-70 transition-opacity"
+                          >
+                            {b.requester_avatar_url ? (
+                              <img src={b.requester_avatar_url} alt={b.requester_name} className="w-8 h-8 rounded-full object-cover border border-gray-200" />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
+                                {b.requester_name?.charAt(0)?.toUpperCase()}
+                              </div>
                             )}
-                          </div>
+                            <div>
+                              <span className="text-xs font-medium text-gray-700 hover:text-emerald-600">{b.requester_name}</span>
+                              {b.requester_avg_rating != null && (
+                                <span className="ml-1 text-xs text-amber-600 inline-flex items-center gap-0.5">
+                                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {b.requester_avg_rating}
+                                </span>
+                              )}
+                            </div>
+                          </button>
                         </div>
                         <p className="text-xs text-gray-500 mb-1">
                           Scheduled: {b.scheduled_date}

@@ -697,14 +697,19 @@ export default function HomePage() {
                             <StatusBadge status={r.status} />
                           </div>
                           <div className="flex items-center gap-1.5 mt-0.5">
-                            {r.requester_avatar_url ? (
-                              <img src={r.requester_avatar_url} alt={r.requester_name} className="w-5 h-5 rounded-full object-cover border border-gray-200" />
-                            ) : (
-                              <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500" style={{fontSize: '0.6rem'}}>
-                                {r.requester_name?.charAt(0)?.toUpperCase()}
-                              </div>
-                            )}
-                            <span className="text-xs text-gray-500">{r.requester_name}</span>
+                            <button 
+                              onClick={() => navigate(`/profile/${r.requester_id}`)}
+                              className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
+                            >
+                              {r.requester_avatar_url ? (
+                                <img src={r.requester_avatar_url} alt={r.requester_name} className="w-5 h-5 rounded-full object-cover border border-gray-200" />
+                              ) : (
+                                <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500" style={{fontSize: '0.6rem'}}>
+                                  {r.requester_name?.charAt(0)?.toUpperCase()}
+                                </div>
+                              )}
+                              <span className="text-xs text-gray-500 hover:text-emerald-600">{r.requester_name}</span>
+                            </button>
                             {r.requester_avg_rating != null && (
                               <span className="text-xs text-amber-600 inline-flex items-center gap-0.5">
                                 <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {r.requester_avg_rating}
@@ -754,14 +759,19 @@ export default function HomePage() {
                             <StatusBadge status={b.status} />
                           </div>
                           <div className="flex items-center gap-1.5 mt-0.5">
-                            {b.requester_avatar_url ? (
-                              <img src={b.requester_avatar_url} alt={b.requester_name} className="w-5 h-5 rounded-full object-cover border border-gray-200" />
-                            ) : (
-                              <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500" style={{fontSize: '0.6rem'}}>
-                                {b.requester_name?.charAt(0)?.toUpperCase()}
-                              </div>
-                            )}
-                            <span className="text-xs text-gray-500">{b.requester_name}</span>
+                            <button 
+                              onClick={() => navigate(`/profile/${b.requester_id}`)}
+                              className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
+                            >
+                              {b.requester_avatar_url ? (
+                                <img src={b.requester_avatar_url} alt={b.requester_name} className="w-5 h-5 rounded-full object-cover border border-gray-200" />
+                              ) : (
+                                <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500" style={{fontSize: '0.6rem'}}>
+                                  {b.requester_name?.charAt(0)?.toUpperCase()}
+                                </div>
+                              )}
+                              <span className="text-xs text-gray-500 hover:text-emerald-600">{b.requester_name}</span>
+                            </button>
                             {b.requester_avg_rating != null && (
                               <span className="text-xs text-amber-600 inline-flex items-center gap-0.5">
                                 <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {b.requester_avg_rating}
