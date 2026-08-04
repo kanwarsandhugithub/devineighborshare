@@ -11,7 +11,7 @@ from app.database import init_db
 from app.routes import auth, users, communities, items, services, discussions, messages, reviews, uploads
 from fastapi.staticfiles import StaticFiles
 
-app = FastAPI(title="ViciLend API")
+app = FastAPI(title="VicinityShare API")
 
 # Configure CORS for production domains
 app.add_middleware(

@@ -1,3 +1,3 @@
-# ViciLend Backend
+# VicinityShare Backend
 
-FastAPI backend for ViciLend community sharing platform.
+FastAPI backend for VicinityShare community sharing platform.

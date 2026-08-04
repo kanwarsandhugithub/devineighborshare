@@ -3,6 +3,7 @@
   "outputDirectory": "community_share_frontend/dist",
   "installCommand": "cd community_share_frontend && npm install",
   "env": {
-    "VITE_API_URL": "https://api.vicinityshare.com"
+    "VITE_API_URL": "https://api.vicinityshare.com",
+    "FROM_EMAIL": "VicinityShare <noreply@vicinityshare.com>"
   }
 }

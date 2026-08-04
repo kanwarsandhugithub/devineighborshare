@@ -14,10 +14,10 @@ export default function TermsPage({ onBack }: { onBack?: () => void }) {
         <p className="text-xs text-gray-400">Last updated: March 29, 2026</p>
 
         <h2 className="text-lg font-semibold text-gray-800">1. Acceptance of Terms</h2>
-        <p>By accessing or using the ViciLend application ("Service"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Service.</p>
+        <p>By accessing or using the VicinityShare application ("Service"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Service.</p>
 
         <h2 className="text-lg font-semibold text-gray-800">2. Description of Service</h2>
-        <p>ViciLend is a community-based platform that enables residents within HOA and apartment communities to share, rent, and offer items and services to their neighbors. The Service facilitates connections between community members but does not own, manage, or control any items or services listed.</p>
+        <p>VicinityShare is a community-based platform that enables residents within HOA and apartment communities to share, rent, and offer items and services to their neighbors. The Service facilitates connections between community members but does not own, manage, or control any items or services listed.</p>
 
         <h2 className="text-lg font-semibold text-gray-800">3. User Accounts</h2>
         <p>You must register for an account to use the Service. You agree to:</p>
@@ -40,7 +40,7 @@ export default function TermsPage({ onBack }: { onBack?: () => void }) {
           <li>Honor approved rental agreements and service bookings</li>
           <li>Return borrowed items in the same condition they were received</li>
         </ul>
-        <p>ViciLend is not a party to any transaction between users. All agreements, payments, and disputes are between the users involved.</p>
+        <p>VicinityShare is not a party to any transaction between users. All agreements, payments, and disputes are between the users involved.</p>
 
         <h2 className="text-lg font-semibold text-gray-800">6. User Conduct</h2>
         <p>You agree not to:</p>
@@ -57,10 +57,10 @@ export default function TermsPage({ onBack }: { onBack?: () => void }) {
         <p>Users may leave ratings and reviews after completing transactions. Reviews must be honest and based on genuine experiences. We reserve the right to remove reviews that violate these terms.</p>
 
         <h2 className="text-lg font-semibold text-gray-800">8. Content Ownership</h2>
-        <p>You retain ownership of content you post (photos, descriptions, messages). By posting content, you grant ViciLend a non-exclusive license to display it within the Service.</p>
+        <p>You retain ownership of content you post (photos, descriptions, messages). By posting content, you grant VicinityShare a non-exclusive license to display it within the Service.</p>
 
         <h2 className="text-lg font-semibold text-gray-800">9. Limitation of Liability</h2>
-        <p>ViciLend is provided "as is" without warranties of any kind. We are not responsible for:</p>
+        <p>VicinityShare is provided "as is" without warranties of any kind. We are not responsible for:</p>
         <ul className="list-disc pl-5 space-y-1">
           <li>The quality, safety, or legality of items or services listed</li>
           <li>The accuracy of listings or user profiles</li>

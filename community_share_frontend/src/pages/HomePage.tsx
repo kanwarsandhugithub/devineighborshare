@@ -907,12 +907,12 @@ export default function HomePage() {
               <p className="text-sm text-amber-800 font-medium mb-2">Please read and accept before proceeding:</p>
               <p className="text-sm text-gray-700 mb-2">
                 {waiverType === "rental" 
-                  ? "I acknowledge that I am borrowing this item at my own risk. I understand that ViciLend and the item owner are not responsible for any injury, damage, or loss that may occur while using this item."
-                  : "I acknowledge that I am requesting this service at my own risk. I understand that ViciLend and the service provider are not responsible for any injury, damage, or loss that may occur during the provision of this service."
+                  ? "I acknowledge that I am borrowing this item at my own risk. I understand that VicinityShare and the item owner are not responsible for any injury, damage, or loss that may occur while using this item."
+                  : "I acknowledge that I am requesting this service at my own risk. I understand that VicinityShare and the service provider are not responsible for any injury, damage, or loss that may occur during the provision of this service."
                 }
               </p>
               <p className="text-sm text-gray-700">
-                I agree to use the item/service responsibly and indemnify ViciLend, the owner/provider, and the community from any claims arising from my use.
+                I agree to use the item/service responsibly and indemnify VicinityShare, the owner/provider, and the community from any claims arising from my use.
               </p>
             </div>
             <div className="flex gap-2">

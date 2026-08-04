@@ -105,7 +105,7 @@ export default function LoginPage({ onSwitch, onShowTerms, onShowPrivacy }: { on
           {view === "login" && (
             <>
               <CardTitle className="text-2xl">Welcome Back</CardTitle>
-              <CardDescription>Sign in to ViciLend</CardDescription>
+              <CardDescription>Sign in to VicinityShare</CardDescription>
             </>
           )}
           {view === "forgot" && (
