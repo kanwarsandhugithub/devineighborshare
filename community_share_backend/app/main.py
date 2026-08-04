@@ -13,10 +13,10 @@ from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="ViciLend API")
 
-# Disable CORS. Do not remove this for full-stack development.
+# Configure CORS for production domains
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=["https://vicinityshare.com", "https://vicilend.com", "http://vicinityshare.com"],  # Allow both new and old domains
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
