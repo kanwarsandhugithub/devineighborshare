@@ -423,12 +423,17 @@ export default function CommunityPage() {
                         <Badge variant="outline" className="text-xs">{item.category}</Badge>
                         <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{item.price_per_day}/day</span>
                         <span className="inline-flex items-center gap-1">
-                          {item.owner_avatar_url ? (
-                            <img src={item.owner_avatar_url} alt={item.owner_name} className="w-4 h-4 rounded-full object-cover" />
-                          ) : (
-                            <span className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-gray-500" style={{fontSize: '0.5rem'}}>{item.owner_name?.charAt(0)?.toUpperCase()}</span>
-                          )}
-                          {item.owner_name}
+                          <button
+                            onClick={() => navigate(`/profile/${item.owner_id}`)}
+                            className="inline-flex items-center gap-1 hover:opacity-70 transition-opacity"
+                          >
+                            {item.owner_avatar_url ? (
+                              <img src={item.owner_avatar_url} alt={item.owner_name} className="w-4 h-4 rounded-full object-cover" />
+                            ) : (
+                              <span className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-gray-500" style={{fontSize: '0.5rem'}}>{item.owner_name?.charAt(0)?.toUpperCase()}</span>
+                            )}
+                            <span className="hover:text-emerald-600">{item.owner_name}</span>
+                          </button>
                           {item.owner_avg_rating != null && (
                             <span className="text-amber-600 inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{item.owner_avg_rating}</span>
                           )}
@@ -527,12 +532,17 @@ export default function CommunityPage() {
                         <Badge variant="outline" className="text-xs">{svc.category}</Badge>
                         <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{svc.price}</span>
                         <span className="inline-flex items-center gap-1">
-                          {svc.provider_avatar_url ? (
-                            <img src={svc.provider_avatar_url} alt={svc.provider_name} className="w-4 h-4 rounded-full object-cover" />
-                          ) : (
-                            <span className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-gray-500" style={{fontSize: '0.5rem'}}>{svc.provider_name?.charAt(0)?.toUpperCase()}</span>
-                          )}
-                          {svc.provider_name}
+                          <button
+                            onClick={() => navigate(`/profile/${svc.provider_id}`)}
+                            className="inline-flex items-center gap-1 hover:opacity-70 transition-opacity"
+                          >
+                            {svc.provider_avatar_url ? (
+                              <img src={svc.provider_avatar_url} alt={svc.provider_name} className="w-4 h-4 rounded-full object-cover" />
+                            ) : (
+                              <span className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-gray-500" style={{fontSize: '0.5rem'}}>{svc.provider_name?.charAt(0)?.toUpperCase()}</span>
+                            )}
+                            <span className="hover:text-emerald-600">{svc.provider_name}</span>
+                          </button>
                           {svc.provider_avg_rating != null && (
                             <span className="text-amber-600 inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{svc.provider_avg_rating}</span>
                           )}
@@ -609,12 +619,17 @@ export default function CommunityPage() {
                       <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
                         <Badge variant="outline" className="text-xs">{d.category}</Badge>
                         <span className="inline-flex items-center gap-1">
-                          {d.author_avatar_url ? (
-                            <img src={d.author_avatar_url} alt={d.author_name} className="w-4 h-4 rounded-full object-cover" />
-                          ) : (
-                            <span className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-gray-500" style={{fontSize: '0.5rem'}}>{d.author_name?.charAt(0)?.toUpperCase()}</span>
-                          )}
-                          {d.author_name}
+                          <button
+                            onClick={() => navigate(`/profile/${d.author_id}`)}
+                            className="inline-flex items-center gap-1 hover:opacity-70 transition-opacity"
+                          >
+                            {d.author_avatar_url ? (
+                              <img src={d.author_avatar_url} alt={d.author_name} className="w-4 h-4 rounded-full object-cover" />
+                            ) : (
+                              <span className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-gray-500" style={{fontSize: '0.5rem'}}>{d.author_name?.charAt(0)?.toUpperCase()}</span>
+                            )}
+                            <span className="hover:text-emerald-600">{d.author_name}</span>
+                          </button>
                           {d.author_avg_rating != null && (
                             <span className="text-amber-600 inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{d.author_avg_rating}</span>
                           )}
