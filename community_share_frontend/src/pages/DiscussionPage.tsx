@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Send, Star } from "lucide-react";
 
@@ -83,14 +83,18 @@ export default function DiscussionPage() {
           <h1 className="text-xl font-bold mb-2">{discussion.title}</h1>
           <p className="text-gray-600 whitespace-pre-wrap">{discussion.content}</p>
           <div className="flex items-center gap-2 mt-4 text-xs text-gray-400">
-            <Avatar className="w-6 h-6">
-              {discussion.author_avatar_url ? (
-                <img src={discussion.author_avatar_url} alt={discussion.author_name} className="w-6 h-6 rounded-full object-cover" />
-              ) : (
+            <button
+              onClick={() => navigate(`/profile/${discussion.author_id}`)}
+              className="inline-flex items-center gap-2 hover:opacity-70 transition-opacity"
+            >
+              <Avatar className="w-6 h-6">
+                {discussion.author_avatar_url ? (
+                  <AvatarImage src={discussion.author_avatar_url} alt={discussion.author_name} />
+                ) : null}
                 <AvatarFallback className="text-xs bg-emerald-100 text-emerald-700">{getInitials(discussion.author_name)}</AvatarFallback>
-              )}
-            </Avatar>
-            <span>{discussion.author_name}</span>
+              </Avatar>
+              <span className="hover:text-emerald-600">{discussion.author_name}</span>
+            </button>
             {discussion.author_avg_rating != null && (
               <span className="text-amber-600 inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{discussion.author_avg_rating}</span>
             )}
@@ -107,16 +111,25 @@ export default function DiscussionPage() {
       <div className="space-y-3 mb-4">
         {comments.map((c) => (
           <div key={c.id} className="flex gap-3">
-            <Avatar className="w-8 h-8 mt-1">
-              {c.author_avatar_url ? (
-                <img src={c.author_avatar_url} alt={c.author_name} className="w-8 h-8 rounded-full object-cover" />
-              ) : (
+            <button
+              onClick={() => navigate(`/profile/${c.author_id}`)}
+              className="hover:opacity-70 transition-opacity"
+            >
+              <Avatar className="w-8 h-8 mt-1">
+                {c.author_avatar_url ? (
+                  <AvatarImage src={c.author_avatar_url} alt={c.author_name} />
+                ) : null}
                 <AvatarFallback className="text-xs bg-gray-100">{getInitials(c.author_name)}</AvatarFallback>
-              )}
-            </Avatar>
+              </Avatar>
+            </button>
             <div className="flex-1 bg-gray-50 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm font-medium">{c.author_name}</span>
+                <button
+                  onClick={() => navigate(`/profile/${c.author_id}`)}
+                  className="text-sm font-medium hover:text-emerald-600"
+                >
+                  {c.author_name}
+                </button>
                 {c.author_avg_rating != null && (
                   <span className="text-xs text-amber-600 inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{c.author_avg_rating}</span>
                 )}
