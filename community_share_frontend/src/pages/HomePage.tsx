@@ -147,6 +147,9 @@ export default function HomePage() {
   const [showEditService, setShowEditService] = useState(false);
   const [editService, setEditService] = useState<Service | null>(null);
   const [editServiceForm, setEditServiceForm] = useState({ title: "", description: "", category: "", price: 0 });
+  const [showRequestDialog, setShowRequestDialog] = useState(false);
+  const [requestType, setRequestType] = useState<"item" | "service" | null>(null);
+  const [requestForm, setRequestForm] = useState({ title: "", description: "" });
 
   useEffect(() => {
     loadCommunities();
@@ -346,6 +349,28 @@ export default function HomePage() {
   const hasReviewedRental = (rentalId: number) => myReviews.some((r) => r.rental_id === rentalId);
   const hasReviewedBooking = (bookingId: number) => myReviews.some((r) => r.booking_id === bookingId);
 
+  const handleRequestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCommunityId || !requestType) return;
+    try {
+      const category = requestType === "item" ? "item-request" : "service-request";
+      const titlePrefix = requestType === "item" ? "Looking for: " : "Requesting service: ";
+      await api.createDiscussion({
+        community_id: selectedCommunityId,
+        title: titlePrefix + requestForm.title,
+        content: requestForm.description,
+        category: category,
+      });
+      setShowRequestDialog(false);
+      setRequestForm({ title: "", description: "" });
+      setRequestType(null);
+      // Navigate to community discussions
+      navigate(`/community/${selectedCommunityId}`);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to create request");
+    }
+  };
+
   const myRentalRequests = rentals.filter((r) => r.requester_id === user?.id);
   const incomingRentalRequests = rentals.filter((r) => r.requester_id !== user?.id);
   const myServiceBookings = bookings.filter((b) => b.requester_id === user?.id);
@@ -495,11 +520,16 @@ export default function HomePage() {
               <h2 className="font-semibold text-gray-700 flex items-center gap-2">
                 <Package className="w-4 h-4 text-emerald-600" /> Items for Rent
               </h2>
-              {primaryCommunity && (
-                <Button size="sm" variant="ghost" className="text-xs text-emerald-600" onClick={() => navigate(`/community/${primaryCommunity.id}`)}>
-                  View All <ArrowRight className="w-3 h-3 ml-1" />
+              <div className="flex gap-1">
+                {primaryCommunity && (
+                  <Button size="sm" variant="ghost" className="text-xs text-emerald-600" onClick={() => navigate(`/community/${primaryCommunity.id}`)}>
+                    View All <ArrowRight className="w-3 h-3 ml-1" />
+                  </Button>
+                )}
+                <Button size="sm" variant="outline" className="text-xs" onClick={() => { setRequestType("item"); setShowRequestDialog(true); }}>
+                  <Plus className="w-3 h-3 mr-1" /> Request
                 </Button>
-              )}
+              </div>
             </div>
             {filteredItems.length === 0 ? (
               <Card><CardContent className="py-4 text-center text-gray-400 text-sm">{q ? "No items match your search" : "No items listed yet"}</CardContent></Card>
@@ -569,11 +599,16 @@ export default function HomePage() {
               <h2 className="font-semibold text-gray-700 flex items-center gap-2">
                 <Wrench className="w-4 h-4 text-blue-600" /> Services Offered
               </h2>
-              {primaryCommunity && (
-                <Button size="sm" variant="ghost" className="text-xs text-blue-600" onClick={() => navigate(`/community/${primaryCommunity.id}`)}>
-                  View All <ArrowRight className="w-3 h-3 ml-1" />
+              <div className="flex gap-1">
+                {primaryCommunity && (
+                  <Button size="sm" variant="ghost" className="text-xs text-blue-600" onClick={() => navigate(`/community/${primaryCommunity.id}`)}>
+                    View All <ArrowRight className="w-3 h-3 ml-1" />
+                  </Button>
+                )}
+                <Button size="sm" variant="outline" className="text-xs" onClick={() => { setRequestType("service"); setShowRequestDialog(true); }}>
+                  <Plus className="w-3 h-3 mr-1" /> Request
                 </Button>
-              )}
+              </div>
             </div>
             {filteredServices.length === 0 ? (
               <Card><CardContent className="py-4 text-center text-gray-400 text-sm">{q ? "No services match your search" : "No services offered yet"}</CardContent></Card>
@@ -926,6 +961,49 @@ export default function HomePage() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Request Item/Service Dialog */}
+      <Dialog open={showRequestDialog} onOpenChange={setShowRequestDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{requestType === "item" ? "Request an Item" : "Request a Service"}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleRequestSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>
+                {requestType === "item" ? "What item are you looking for?" : "What service do you need?"}
+              </Label>
+              <Input
+                value={requestForm.title}
+                onChange={(e) => setRequestForm({ ...requestForm, title: e.target.value })}
+                placeholder={requestType === "item" ? "e.g., Power drill" : "e.g., Plumbing help"}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea
+                value={requestForm.description}
+                onChange={(e) => setRequestForm({ ...requestForm, description: e.target.value })}
+                placeholder={requestType === "item" ? "Describe what you need and when..." : "Describe the service you need and any details..."}
+                rows={3}
+                required
+              />
+            </div>
+            <p className="text-xs text-gray-500">
+              This will create a discussion post in your community so neighbors can see your request and offer to help.
+            </p>
+            <div className="flex gap-2">
+              <Button type="submit" className="flex-1 bg-emerald-600 hover:bg-emerald-700">
+                Post Request
+              </Button>
+              <Button type="button" variant="outline" onClick={() => setShowRequestDialog(false)} className="flex-1">
+                Cancel
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
 
