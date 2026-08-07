@@ -358,8 +358,18 @@ export default function HomePage() {
   const incomingServiceBookings = bookings.filter((b) => b.requester_id !== user?.id);
 
   const q = searchQuery.toLowerCase().trim();
-  const filteredItems = q ? items.filter((item) => item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q) || item.category.toLowerCase().includes(q) || item.owner_name.toLowerCase().includes(q)) : items;
-  const filteredServices = q ? services.filter((svc) => svc.title.toLowerCase().includes(q) || svc.description.toLowerCase().includes(q) || svc.category.toLowerCase().includes(q) || svc.provider_name.toLowerCase().includes(q)) : services;
+  const filteredItems = q ? items.filter((item) => 
+    item.title.toLowerCase().includes(q) || 
+    (item.description && item.description.toLowerCase().includes(q)) || 
+    item.category.toLowerCase().includes(q) || 
+    (item.owner_name && item.owner_name.toLowerCase().includes(q))
+  ) : items;
+  const filteredServices = q ? services.filter((svc) => 
+    svc.title.toLowerCase().includes(q) || 
+    (svc.description && svc.description.toLowerCase().includes(q)) || 
+    svc.category.toLowerCase().includes(q) || 
+    (svc.provider_name && svc.provider_name.toLowerCase().includes(q))
+  ) : services;
   const primaryCommunity = communities.find((c) => c.id === selectedCommunityId) || (communities.length > 0 ? communities[0] : null);
   const otherCommunities = communities.filter((c) => c.id !== primaryCommunity?.id);
 
