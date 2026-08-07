@@ -134,7 +134,13 @@ async def delete_item(item_id: int, current_user_id: int = Depends(get_current_u
             raise HTTPException(status_code=404, detail="Item not found")
         if item["owner_id"] != current_user_id:
             raise HTTPException(status_code=403, detail="Not the owner")
+        
+        # Cascade delete related data
+        db.execute("DELETE FROM reviews WHERE item_id = ?", (item_id,))
+        db.execute("DELETE FROM rental_requests WHERE item_id = ?", (item_id,))
+        db.execute("DELETE FROM item_images WHERE item_id = ?", (item_id,))
         db.execute("DELETE FROM items WHERE id = ?", (item_id,))
+        
     return {"status": "deleted"}
 
 
@@ -187,6 +193,22 @@ async def get_my_rental_requests(current_user_id: int = Depends(get_current_user
             (current_user_id, current_user_id),
         ).fetchall()
     return [_rental_from_row(r) for r in rows]
+
+
+@router.get("/my", response_model=List[ItemOut])
+async def get_my_items(current_user_id: int = Depends(get_current_user_id)):
+    with get_db() as db:
+        rows = db.execute(
+            """SELECT i.*, u.full_name as owner_name FROM items i
+               JOIN users u ON u.id = i.owner_id WHERE i.owner_id = ?
+               ORDER BY i.created_at DESC""",
+            (current_user_id,),
+        ).fetchall()
+        results = []
+        for r in rows:
+            image_urls = _get_item_image_urls(db, r["id"])
+            results.append(_item_from_row(r, image_urls))
+        return results
 
 
 @router.put("/rentals/{request_id}", response_model=RentalRequestOut)

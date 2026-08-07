@@ -83,6 +83,7 @@ export const api = {
   updateItem: (id: number, data: Record<string, unknown>) =>
     request(`/api/items/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deleteItem: (id: number) => request(`/api/items/${id}`, { method: "DELETE" }),
+  getMyItems: () => request("/api/items/my"),
 
   // Rental requests
   createRental: (data: { item_id: number; start_date: string; end_date: string; message: string }) =>
@@ -105,6 +106,7 @@ export const api = {
   updateService: (id: number, data: Record<string, unknown>) =>
     request(`/api/services/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deleteService: (id: number) => request(`/api/services/${id}`, { method: "DELETE" }),
+  getMyServices: () => request("/api/services/my"),
 
   // Service bookings
   createBooking: (data: { service_id: number; scheduled_date: string; message: string }) =>

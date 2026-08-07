@@ -161,6 +161,26 @@ async def update_community(community_id: int, data: CommunityUpdate, current_use
     )
 
 
+@router.post("/clear-demo-data")
+async def clear_demo_data(current_user_id: int = Depends(get_current_user_id), current_user_email: str = Depends(get_current_user_email)):
+    """Super-admin only: clear all demo data (items, services, discussions, etc)."""
+    if current_user_email != "kanwarsandhu@gmail.com":
+        raise HTTPException(status_code=403, detail="Only admin can clear demo data")
+    
+    with get_db() as db:
+        # Clear data in order of dependencies
+        db.execute("DELETE FROM comments")
+        db.execute("DELETE FROM discussions")
+        db.execute("DELETE FROM rental_requests")
+        db.execute("DELETE FROM service_bookings")
+        db.execute("DELETE FROM reviews")
+        db.execute("DELETE FROM services")
+        db.execute("DELETE FROM items")
+        db.execute("DELETE FROM messages")
+        
+    return {"detail": "Demo data cleared successfully"}
+
+
 @router.get("/{community_id}", response_model=CommunityOut)
 async def get_community(community_id: int, current_user_id: int = Depends(get_current_user_id)):
     with get_db() as db:

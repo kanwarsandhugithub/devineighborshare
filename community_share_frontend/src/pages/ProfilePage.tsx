@@ -8,17 +8,29 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Star, Edit, Check, X, Camera } from "lucide-react";
+import { Star, Edit, Check, X, Camera, Trash2, Package, Wrench } from "lucide-react";
 
 interface Review {
   id: number; reviewer_id: number; rating: number;
   comment: string; reviewer_name: string; reviewer_avatar_url?: string; reviewer_avg_rating?: number; created_at: string;
 }
 
+interface Item {
+  id: number; title: string; description: string; category: string;
+  price_per_day: number; image_url: string | null; image_urls: string[]; is_available: boolean;
+}
+
+interface Service {
+  id: number; title: string; description: string; category: string;
+  price: number; is_available: boolean;
+}
+
 export default function ProfilePage() {
   const { user, logout, refreshUser } = useAuth();
   const [editing, setEditing] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [items, setItems] = useState<Item[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [form, setForm] = useState({ full_name: "", phone: "", bio: "" });
   const [uploading, setUploading] = useState(false);
 
@@ -26,6 +38,9 @@ export default function ProfilePage() {
     if (user) {
       setForm({ full_name: user.full_name, phone: user.phone || "", bio: user.bio || "" });
       api.getUserReviews(user.id).then(setReviews).catch(() => {});
+      // Load user's items and services
+      api.getMyItems().then(setItems).catch(() => {});
+      api.getMyServices().then(setServices).catch(() => {});
     }
   }, [user]);
 
@@ -55,6 +70,26 @@ export default function ProfilePage() {
   };
 
   const getInitials = (name: string) => name.split(" ").map((n) => n[0]).join("").toUpperCase();
+
+  const handleDeleteItem = async (itemId: number) => {
+    if (!confirm("Are you sure you want to delete this item? This will also delete all related rental requests and reviews.")) return;
+    try {
+      await api.deleteItem(itemId);
+      setItems(items.filter(i => i.id !== itemId));
+    } catch {
+      alert("Failed to delete item");
+    }
+  };
+
+  const handleDeleteService = async (serviceId: number) => {
+    if (!confirm("Are you sure you want to delete this service? This will also delete all related bookings and reviews.")) return;
+    try {
+      await api.deleteService(serviceId);
+      setServices(services.filter(s => s.id !== serviceId));
+    } catch {
+      alert("Failed to delete service");
+    }
+  };
 
   if (!user) return null;
 
@@ -156,6 +191,86 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 {r.comment && <p className="text-sm text-gray-600">{r.comment}</p>}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <Separator className="my-4" />
+
+      <h2 className="font-semibold text-gray-700 mb-3">My Items ({items.length})</h2>
+      {items.length === 0 ? (
+        <p className="text-center text-gray-400 text-sm py-4">No items listed yet</p>
+      ) : (
+        <div className="space-y-3">
+          {items.map((item) => (
+            <Card key={item.id}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm">{item.title}</h3>
+                    <p className="text-xs text-gray-500 line-clamp-1">{item.description}</p>
+                    <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
+                      <Package className="w-3 h-3" />
+                      <span>{item.category}</span>
+                      <span>·</span>
+                      <span>${item.price_per_day}/day</span>
+                      <span>·</span>
+                      <span className={item.is_available ? "text-emerald-600" : "text-red-600"}>
+                        {item.is_available ? "Available" : "Not Available"}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-red-600 border-red-200 hover:bg-red-50 ml-2"
+                    onClick={() => handleDeleteItem(item.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <Separator className="my-4" />
+
+      <h2 className="font-semibold text-gray-700 mb-3">My Services ({services.length})</h2>
+      {services.length === 0 ? (
+        <p className="text-center text-gray-400 text-sm py-4">No services offered yet</p>
+      ) : (
+        <div className="space-y-3">
+          {services.map((service) => (
+            <Card key={service.id}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm">{service.title}</h3>
+                    <p className="text-xs text-gray-500 line-clamp-1">{service.description}</p>
+                    <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
+                      <Wrench className="w-3 h-3" />
+                      <span>{service.category}</span>
+                      <span>·</span>
+                      <span>${service.price}</span>
+                      <span>·</span>
+                      <span className={service.is_available ? "text-emerald-600" : "text-red-600"}>
+                        {service.is_available ? "Available" : "Not Available"}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-red-600 border-red-200 hover:bg-red-50 ml-2"
+                    onClick={() => handleDeleteService(service.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}

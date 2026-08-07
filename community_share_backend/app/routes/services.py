@@ -102,7 +102,12 @@ async def delete_service(service_id: int, current_user_id: int = Depends(get_cur
             raise HTTPException(status_code=404, detail="Service not found")
         if svc["provider_id"] != current_user_id:
             raise HTTPException(status_code=403, detail="Not the provider")
+        
+        # Cascade delete related data
+        db.execute("DELETE FROM reviews WHERE service_id = ?", (service_id,))
+        db.execute("DELETE FROM service_bookings WHERE service_id = ?", (service_id,))
         db.execute("DELETE FROM services WHERE id = ?", (service_id,))
+        
     return {"status": "deleted"}
 
 
@@ -155,6 +160,18 @@ async def get_my_bookings(current_user_id: int = Depends(get_current_user_id)):
             (current_user_id, current_user_id),
         ).fetchall()
     return [_booking_from_row(r) for r in rows]
+
+
+@router.get("/my", response_model=List[ServiceOut])
+async def get_my_services(current_user_id: int = Depends(get_current_user_id)):
+    with get_db() as db:
+        rows = db.execute(
+            """SELECT s.*, u.full_name as provider_name FROM services s
+               JOIN users u ON u.id = s.provider_id WHERE s.provider_id = ?
+               ORDER BY s.created_at DESC""",
+            (current_user_id,),
+        ).fetchall()
+    return [_service_from_row(r) for r in rows]
 
 
 @router.put("/bookings/{booking_id}", response_model=ServiceBookingOut)
