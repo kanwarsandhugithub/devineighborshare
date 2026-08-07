@@ -372,7 +372,12 @@ export default function HomePage() {
         <div>
           {primaryCommunity ? (
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{primaryCommunity.name}</h1>
+              <button 
+                onClick={() => navigate(`/community/${primaryCommunity.id}`)}
+                className="text-left"
+              >
+                <h1 className="text-2xl font-bold text-gray-900 hover:text-emerald-600 transition-colors">{primaryCommunity.name}</h1>
+              </button>
               <p className="text-gray-500 text-sm flex items-center gap-1">
                 <Users className="w-3 h-3" /> {primaryCommunity.member_count} members · Hi, {user?.full_name}!
               </p>
