@@ -39,8 +39,8 @@ export default function ProfilePage() {
       setForm({ full_name: user.full_name, phone: user.phone || "", bio: user.bio || "" });
       api.getUserReviews(user.id).then(setReviews).catch(() => {});
       // Load user's items and services
-      api.getMyItems().then(setItems).catch(() => {});
-      api.getMyServices().then(setServices).catch(() => {});
+      api.getMyItems().then(setItems).catch((e) => console.error("Failed to load items:", e));
+      api.getMyServices().then(setServices).catch((e) => console.error("Failed to load services:", e));
     }
   }, [user]);
 

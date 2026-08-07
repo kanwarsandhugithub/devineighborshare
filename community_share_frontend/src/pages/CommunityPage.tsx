@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Plus, Package, Wrench, MessageSquare, DollarSign, Send, ImagePlus, X, ChevronLeft, ChevronRight, Edit, Search, Star } from "lucide-react";
+import { ArrowLeft, Plus, Package, Wrench, MessageSquare, DollarSign, Send, ImagePlus, X, ChevronLeft, ChevronRight, Edit, Search, Star, Trash2 } from "lucide-react";
 
 interface Item {
   id: number; title: string; description: string; category: string;
@@ -309,6 +309,26 @@ export default function CommunityPage() {
     }
   };
 
+  const handleDeleteItem = async (itemId: number) => {
+    if (!confirm("Are you sure you want to delete this item? This will also delete all related rental requests and reviews.")) return;
+    try {
+      await api.deleteItem(itemId);
+      loadData();
+    } catch {
+      alert("Failed to delete item");
+    }
+  };
+
+  const handleDeleteService = async (serviceId: number) => {
+    if (!confirm("Are you sure you want to delete this service? This will also delete all related bookings and reviews.")) return;
+    try {
+      await api.deleteService(serviceId);
+      loadData();
+    } catch {
+      alert("Failed to delete service");
+    }
+  };
+
   if (!community) return <div className="p-4 text-center text-gray-400">Loading...</div>;
 
   return (
@@ -442,9 +462,14 @@ export default function CommunityPage() {
                     </div>
                     <div className="flex gap-1 ml-2">
                       {item.owner_id === user?.id && (
-                        <Button size="sm" variant="outline" onClick={() => openEditItem(item)}>
-                          <Edit className="w-3 h-3" />
-                        </Button>
+                        <>
+                          <Button size="sm" variant="outline" onClick={() => openEditItem(item)}>
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleDeleteItem(item.id)}>
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </>
                       )}
                       {item.owner_id !== user?.id && item.is_available && (
                         <>
@@ -551,9 +576,14 @@ export default function CommunityPage() {
                     </div>
                     <div className="flex gap-1 ml-2">
                       {svc.provider_id === user?.id && (
-                        <Button size="sm" variant="outline" onClick={() => openEditService(svc)}>
-                          <Edit className="w-3 h-3" />
-                        </Button>
+                        <>
+                          <Button size="sm" variant="outline" onClick={() => openEditService(svc)}>
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleDeleteService(svc.id)}>
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </>
                       )}
                       {svc.provider_id !== user?.id && svc.is_available && (
                         <>
