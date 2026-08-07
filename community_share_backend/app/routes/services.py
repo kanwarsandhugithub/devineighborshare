@@ -174,6 +174,9 @@ async def get_my_services(current_user_id: int = Depends(get_current_user_id)):
     return [_service_from_row(r) for r in rows]
 
 
+@router.get("/{service_id}", response_model=ServiceOut)
+
+
 @router.put("/bookings/{booking_id}", response_model=ServiceBookingOut)
 async def update_booking(booking_id: int, data: ServiceBookingUpdate, background_tasks: BackgroundTasks, current_user_id: int = Depends(get_current_user_id)):
     with get_db() as db:
