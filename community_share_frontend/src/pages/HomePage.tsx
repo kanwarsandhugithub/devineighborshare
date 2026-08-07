@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, DollarSign, ArrowRight, ChevronRight, ChevronLeft, Send, Star, Search, X, Shield, Pencil } from "lucide-react";
+import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, DollarSign, ArrowRight, ChevronRight, ChevronLeft, Send, Star, Search, X, Shield, Pencil, ChevronDown } from "lucide-react";
 
 const ITEM_CATEGORIES = ["tools", "electronics", "outdoor", "kitchen", "sports", "other"];
 const SERVICE_CATEGORIES = ["transportation", "handyman", "cleaning", "tutoring", "pet care", "other"];
@@ -343,12 +343,6 @@ export default function HomePage() {
     }
   };
 
-  const handleSwitchCommunity = (communityId: number) => {
-    setSelectedCommunityId(communityId);
-    localStorage.setItem('selectedCommunityId', String(communityId));
-    loadCommunityData(communityId);
-  };
-
   const hasReviewedRental = (rentalId: number) => myReviews.some((r) => r.rental_id === rentalId);
   const hasReviewedBooking = (bookingId: number) => myReviews.some((r) => r.booking_id === bookingId);
 
@@ -371,14 +365,24 @@ export default function HomePage() {
     (svc.provider_name && svc.provider_name.toLowerCase().includes(q))
   ) : services;
   const primaryCommunity = communities.find((c) => c.id === selectedCommunityId) || (communities.length > 0 ? communities[0] : null);
-  const otherCommunities = communities.filter((c) => c.id !== primaryCommunity?.id);
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Home</h1>
-          <p className="text-gray-500 text-sm">Hi, {user?.full_name}!</p>
+          {primaryCommunity ? (
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{primaryCommunity.name}</h1>
+              <p className="text-gray-500 text-sm flex items-center gap-1">
+                <Users className="w-3 h-3" /> {primaryCommunity.member_count} members · Hi, {user?.full_name}!
+              </p>
+            </div>
+          ) : (
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Home</h1>
+              <p className="text-gray-500 text-sm">Hi, {user?.full_name}!</p>
+            </div>
+          )}
         </div>
         <div className="flex gap-2">
           {user?.is_super_admin && (
@@ -444,40 +448,23 @@ export default function HomePage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {/* Community Card */}
-          {primaryCommunity && (
-            <Card className="cursor-pointer hover:shadow-md transition-shadow border-emerald-200" onClick={() => navigate(`/community/${primaryCommunity.id}`)}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="font-bold text-lg">{primaryCommunity.name}</h2>
-                    <p className="text-sm text-gray-500">{primaryCommunity.description}</p>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                      <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {primaryCommunity.member_count} members</span>
-                      <span>Code: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded">{primaryCommunity.join_code}</span></span>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-gray-400" />
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Other communities */}
-          {otherCommunities.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-gray-500">Other Communities</h3>
-              {otherCommunities.map((c) => (
-                <Card key={c.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleSwitchCommunity(c.id)}>
-                  <CardContent className="p-3 flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-sm">{c.name}</p>
-                      <span className="text-xs text-gray-400 flex items-center gap-1"><Users className="w-3 h-3" /> {c.member_count} members</span>
-                    </div>
-                    <span className="text-xs text-emerald-600 font-medium">Switch</span>
-                  </CardContent>
-                </Card>
-              ))}
+          {/* Community Switcher */}
+          {communities.length > 1 && (
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedCommunityId || ""}
+                onChange={(e) => {
+                  const id = parseInt(e.target.value);
+                  setSelectedCommunityId(id);
+                  localStorage.setItem('selectedCommunityId', String(id));
+                  loadCommunityData(id);
+                }}
+                className="text-sm border border-gray-200 rounded px-2 py-1 bg-white flex-1"
+              >
+                {communities.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
             </div>
           )}
 
