@@ -51,7 +51,8 @@ async def get_community_items(community_id: int, category: str = None, search: s
     with get_db() as db:
         _check_membership(db, community_id, current_user_id)
         query = """SELECT i.*, u.full_name as owner_name, u.avatar_url as owner_avatar_url,
-                   (SELECT ROUND(AVG(rv.rating), 1) FROM reviews rv WHERE rv.reviewed_user_id = i.owner_id) as owner_avg_rating
+                   (SELECT ROUND(AVG(rv.rating), 1) FROM reviews rv WHERE rv.reviewed_user_id = i.owner_id) as owner_avg_rating,
+                   (SELECT COUNT(*) FROM rental_requests rr WHERE rr.item_id = i.id AND rr.status NOT IN ('pending', 'rejected')) as rental_count
                    FROM items i
                    JOIN users u ON u.id = i.owner_id
                    WHERE i.community_id = ?"""
@@ -75,7 +76,9 @@ async def get_community_items(community_id: int, category: str = None, search: s
 async def get_my_items(current_user_id: int = Depends(get_current_user_id)):
     with get_db() as db:
         rows = db.execute(
-            """SELECT i.*, u.full_name as owner_name FROM items i
+            """SELECT i.*, u.full_name as owner_name,
+               (SELECT COUNT(*) FROM rental_requests rr WHERE rr.item_id = i.id AND rr.status NOT IN ('pending', 'rejected')) as rental_count
+               FROM items i
                JOIN users u ON u.id = i.owner_id WHERE i.owner_id = ?
                ORDER BY i.created_at DESC""",
             (current_user_id,),
@@ -91,7 +94,9 @@ async def get_my_items(current_user_id: int = Depends(get_current_user_id)):
 async def get_item(item_id: int):
     with get_db() as db:
         row = db.execute(
-            """SELECT i.*, u.full_name as owner_name FROM items i
+            """SELECT i.*, u.full_name as owner_name,
+               (SELECT COUNT(*) FROM rental_requests rr WHERE rr.item_id = i.id AND rr.status NOT IN ('pending', 'rejected')) as rental_count
+               FROM items i
                JOIN users u ON u.id = i.owner_id WHERE i.id = ?""",
             (item_id,),
         ).fetchone()
@@ -269,6 +274,7 @@ def _item_from_row(row, image_urls: list = None):
         created_at=d["created_at"], owner_name=d["owner_name"],
         owner_avatar_url=d.get("owner_avatar_url"),
         owner_avg_rating=d.get("owner_avg_rating"),
+        rental_count=d.get("rental_count", 0),
     )
 
 

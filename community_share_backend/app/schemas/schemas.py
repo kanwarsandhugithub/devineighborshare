@@ -114,6 +114,7 @@ class ItemOut(BaseModel):
     owner_name: Optional[str] = None
     owner_avatar_url: Optional[str] = None
     owner_avg_rating: Optional[float] = None
+    rental_count: int = 0
 
 
 # Services
@@ -149,6 +150,7 @@ class ServiceOut(BaseModel):
     provider_name: Optional[str] = None
     provider_avatar_url: Optional[str] = None
     provider_avg_rating: Optional[float] = None
+    booking_count: int = 0
 
 
 # Rental Requests

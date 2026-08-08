@@ -38,7 +38,8 @@ async def get_community_services(community_id: int, category: str = None, search
     with get_db() as db:
         _check_membership(db, community_id, current_user_id)
         query = """SELECT s.*, u.full_name as provider_name, u.avatar_url as provider_avatar_url,
-                   (SELECT ROUND(AVG(rv.rating), 1) FROM reviews rv WHERE rv.reviewed_user_id = s.provider_id) as provider_avg_rating
+                   (SELECT ROUND(AVG(rv.rating), 1) FROM reviews rv WHERE rv.reviewed_user_id = s.provider_id) as provider_avg_rating,
+                   (SELECT COUNT(*) FROM service_bookings sb WHERE sb.service_id = s.id AND sb.status NOT IN ('pending', 'rejected')) as booking_count
                    FROM services s
                    JOIN users u ON u.id = s.provider_id
                    WHERE s.community_id = ?"""
@@ -58,7 +59,9 @@ async def get_community_services(community_id: int, category: str = None, search
 async def get_my_services(current_user_id: int = Depends(get_current_user_id)):
     with get_db() as db:
         rows = db.execute(
-            """SELECT s.*, u.full_name as provider_name FROM services s
+            """SELECT s.*, u.full_name as provider_name,
+               (SELECT COUNT(*) FROM service_bookings sb WHERE sb.service_id = s.id AND sb.status NOT IN ('pending', 'rejected')) as booking_count
+               FROM services s
                JOIN users u ON u.id = s.provider_id WHERE s.provider_id = ?
                ORDER BY s.created_at DESC""",
             (current_user_id,),
@@ -70,7 +73,9 @@ async def get_my_services(current_user_id: int = Depends(get_current_user_id)):
 async def get_service(service_id: int):
     with get_db() as db:
         row = db.execute(
-            """SELECT s.*, u.full_name as provider_name FROM services s
+            """SELECT s.*, u.full_name as provider_name,
+               (SELECT COUNT(*) FROM service_bookings sb WHERE sb.service_id = s.id AND sb.status NOT IN ('pending', 'rejected')) as booking_count
+               FROM services s
                JOIN users u ON u.id = s.provider_id WHERE s.id = ?""",
             (service_id,),
         ).fetchone()
@@ -217,6 +222,7 @@ def _service_from_row(row):
         created_at=d["created_at"], provider_name=d["provider_name"],
         provider_avatar_url=d.get("provider_avatar_url"),
         provider_avg_rating=d.get("provider_avg_rating"),
+        booking_count=d.get("booking_count", 0),
     )
 
 

@@ -33,13 +33,13 @@ interface Community {
 interface Item {
   id: number; title: string; description: string; category: string;
   price_per_day: number; price_unit: string; image_url: string | null; image_urls: string[]; is_available: boolean;
-  owner_id: number; owner_name: string; owner_avatar_url?: string; owner_avg_rating?: number; created_at: string;
+  owner_id: number; owner_name: string; owner_avatar_url?: string; owner_avg_rating?: number; rental_count: number; created_at: string;
 }
 
 interface Service {
   id: number; title: string; description: string; category: string;
   price: number; price_unit: string; is_available: boolean; provider_id: number;
-  provider_name: string; provider_avatar_url?: string; provider_avg_rating?: number; created_at: string;
+  provider_name: string; provider_avatar_url?: string; provider_avg_rating?: number; booking_count: number; created_at: string;
 }
 
 interface RentalRequest {
@@ -632,6 +632,11 @@ export default function HomePage() {
                           {item.is_available ? "Available" : "Rented"}
                         </Badge>
                       </div>
+                      <div className="absolute bottom-2 left-2">
+                        <Badge className="bg-black/60 text-white hover:bg-black/60 text-[10px] font-medium px-1.5 py-0.5">
+                          Rented {item.rental_count}x
+                        </Badge>
+                      </div>
                       <div className="absolute bottom-2 right-2">
                         <Badge className="bg-black/60 text-white hover:bg-black/60 text-[10px] font-medium px-1.5 py-0.5">
                           {formatPrice(item.price_per_day, item.price_unit)}
@@ -703,6 +708,11 @@ export default function HomePage() {
                       <div className="absolute top-2 right-2">
                         <Badge className={svc.is_available ? "bg-blue-100 text-blue-700 hover:bg-blue-100 text-[10px] font-bold uppercase px-1.5 py-0.5" : "bg-gray-100 text-gray-700 hover:bg-gray-100 text-[10px] font-bold uppercase px-1.5 py-0.5"}>
                           {svc.is_available ? "Available" : "Booked"}
+                        </Badge>
+                      </div>
+                      <div className="absolute bottom-2 left-2">
+                        <Badge className="bg-black/60 text-white hover:bg-black/60 text-[10px] font-medium px-1.5 py-0.5">
+                          Booked {svc.booking_count}x
                         </Badge>
                       </div>
                       <div className="absolute bottom-2 right-2">
