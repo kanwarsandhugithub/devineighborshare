@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, DollarSign, ArrowRight, ChevronRight, ChevronLeft, Send, Star, Search, X, Shield, Pencil } from "lucide-react";
+import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, DollarSign, ArrowRight, ChevronRight, ChevronLeft, Send, MessageSquare, Star, Search, X, Shield, Pencil } from "lucide-react";
 
 const ITEM_CATEGORIES = ["tools", "electronics", "outdoor", "kitchen", "sports", "other"];
 const SERVICE_CATEGORIES = ["transportation", "handyman", "cleaning", "tutoring", "pet care", "other"];
@@ -175,7 +175,7 @@ export default function HomePage() {
   const [editService, setEditService] = useState<Service | null>(null);
   const [editServiceForm, setEditServiceForm] = useState({ title: "", description: "", category: "", price: 0 });
   const [showRequestDialog, setShowRequestDialog] = useState(false);
-  const [requestType, setRequestType] = useState<"item" | "service" | null>(null);
+  const [requestType, setRequestType] = useState<"item" | "service" | "community" | null>(null);
   const [requestForm, setRequestForm] = useState({ title: "", description: "" });
 
   useEffect(() => {
@@ -380,8 +380,19 @@ export default function HomePage() {
     e.preventDefault();
     if (!selectedCommunityId || !requestType) return;
     try {
-      const category = requestType === "item" ? "item-request" : "service-request";
-      const titlePrefix = requestType === "item" ? "Looking for: " : "Requesting service: ";
+      let category, titlePrefix;
+      if (requestType === "item") {
+        category = "item-request";
+        titlePrefix = "Looking for: ";
+      } else if (requestType === "service") {
+        category = "service-request";
+        titlePrefix = "Requesting service: ";
+      } else if (requestType === "community") {
+        category = "general";
+        titlePrefix = "";
+      } else {
+        return;
+      }
       await api.createDiscussion({
         community_id: selectedCommunityId,
         title: titlePrefix + requestForm.title,
@@ -466,7 +477,7 @@ export default function HomePage() {
 
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
-              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-1" /> Create</Button>
+              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4" /></Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -478,16 +489,32 @@ export default function HomePage() {
                   className="w-full bg-emerald-600 hover:bg-emerald-700"
                   size="lg"
                 >
-                  <Plus className="w-5 h-5 mr-2" />
-                  List an Item
+                  <Package className="w-5 h-5 mr-2" />
+                  Item
                 </Button>
                 <Button
                   onClick={handleCreateService}
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   size="lg"
                 >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Offer a Service
+                  <Wrench className="w-5 h-5 mr-2" />
+                  Service
+                </Button>
+                <Button
+                  onClick={() => { setShowCreateDialog(false); setRequestType("item"); setShowRequestDialog(true); }}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  size="lg"
+                >
+                  <Send className="w-5 h-5 mr-2" />
+                  Ask a Favor
+                </Button>
+                <Button
+                  onClick={() => { setShowCreateDialog(false); setRequestType("community"); setShowRequestDialog(true); }}
+                  className="w-full bg-orange-600 hover:bg-orange-700"
+                  size="lg"
+                >
+                  <MessageSquare className="w-5 h-5 mr-2" />
+                  Community Post
                 </Button>
               </div>
             </DialogContent>
@@ -1024,17 +1051,25 @@ export default function HomePage() {
       <Dialog open={showRequestDialog} onOpenChange={setShowRequestDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{requestType === "item" ? "Request an Item" : "Request a Service"}</DialogTitle>
+            <DialogTitle>
+              {requestType === "item" ? "Request an Item" : 
+               requestType === "service" ? "Request a Service" : 
+               "Create Community Post"}
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleRequestSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>
-                {requestType === "item" ? "What item are you looking for?" : "What service do you need?"}
+                {requestType === "item" ? "What item are you looking for?" : 
+                 requestType === "service" ? "What service do you need?" : 
+                 "Post Title"}
               </Label>
               <Input
                 value={requestForm.title}
                 onChange={(e) => setRequestForm({ ...requestForm, title: e.target.value })}
-                placeholder={requestType === "item" ? "e.g., Power drill" : "e.g., Plumbing help"}
+                placeholder={requestType === "item" ? "e.g., Power drill" : 
+                          requestType === "service" ? "e.g., Plumbing help" : 
+                          "e.g., Looking for recommendations"}
                 required
               />
             </div>
@@ -1043,7 +1078,9 @@ export default function HomePage() {
               <Textarea
                 value={requestForm.description}
                 onChange={(e) => setRequestForm({ ...requestForm, description: e.target.value })}
-                placeholder={requestType === "item" ? "Describe what you need and when..." : "Describe the service you need and any details..."}
+                placeholder={requestType === "item" ? "Describe what you need and when..." : 
+                          requestType === "service" ? "Describe the service you need and any details..." : 
+                          "Share your thoughts or questions with the community..."}
                 rows={3}
                 required
               />
