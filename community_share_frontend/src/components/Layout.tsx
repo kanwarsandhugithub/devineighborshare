@@ -39,7 +39,22 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      <Outlet />
+      {/* Top navigation bar */}
+      <div className="fixed top-0 left-0 right-0 bg-white border-b px-4 py-3 flex justify-between items-center max-w-2xl mx-auto z-10">
+        <h1 className="text-lg font-bold text-emerald-600">VicinityShare</h1>
+        <button
+          onClick={() => setShowCreateDialog(true)}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium"
+        >
+          <Plus className="w-4 h-4" />
+          Create Listing
+        </button>
+      </div>
+      
+      <div className="pt-16">
+        <Outlet />
+      </div>
+      
       <div className="flex justify-center gap-3 py-3 text-xs text-gray-400 max-w-2xl mx-auto">
         <Link to="/terms" className="hover:text-emerald-600 hover:underline">Terms of Service</Link>
         <span>|</span>
@@ -71,14 +86,6 @@ export default function Layout() {
           </button>
         ))}
       </nav>
-      
-      {/* Floating Action Button for creating items/services */}
-      <button
-        onClick={() => setShowCreateDialog(true)}
-        className="fixed bottom-20 right-4 bg-emerald-600 hover:bg-emerald-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-105"
-      >
-        <Plus className="w-6 h-6" />
-      </button>
 
       {/* Create Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
