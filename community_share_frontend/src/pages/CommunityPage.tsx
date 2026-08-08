@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Plus, Package, Wrench, MessageSquare, DollarSign, Send, ImagePlus, X, ChevronLeft, ChevronRight, Edit, Search, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Package, Wrench, MessageSquare, Send, ImagePlus, X, ChevronLeft, ChevronRight, Edit, Search, Star, Trash2 } from "lucide-react";
 
 interface Item {
   id: number; title: string; description: string; category: string;
@@ -97,6 +97,8 @@ export default function CommunityPage() {
   const [showEditItem, setShowEditItem] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [showItemDetail, setShowItemDetail] = useState(false);
+  const [showServiceDetail, setShowServiceDetail] = useState(false);
   const [editItem, setEditItem] = useState({ title: "", description: "", category: "tools", price_per_day: 0 });
   const [editExistingImageUrls, setEditExistingImageUrls] = useState<string[]>([]);
   const [editNewImageFiles, setEditNewImageFiles] = useState<File[]>([]);
@@ -437,70 +439,37 @@ export default function CommunityPage() {
           {items.length === 0 ? (
             <Card className="text-center py-8"><CardContent><p className="text-gray-400">No items found</p></CardContent></Card>
           ) : (
-            items.map((item) => (
-              <Card key={item.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  {item.image_urls && item.image_urls.length > 0 ? (
-                    <ItemImageGallery images={item.image_urls} title={item.title} />
-                  ) : item.image_url ? (
-                    <img src={item.image_url} alt={item.title} className="w-full h-40 object-cover rounded-lg mb-3" />
-                  ) : null}
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold">{item.title}</h3>
-                        <Badge variant={item.is_available ? "default" : "secondary"} className={item.is_available ? "bg-emerald-100 text-emerald-700 text-xs" : "text-xs"}>
-                          {item.is_available ? "Available" : "Unavailable"}
-                        </Badge>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {items.map((item) => (
+                <Card
+                  key={item.id}
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => { setSelectedItem(item); setShowItemDetail(true); }}
+                >
+                  <CardContent className="p-3">
+                    {item.image_url ? (
+                      <img src={item.image_url} alt={item.title} className="w-full h-28 object-cover rounded-lg mb-2" />
+                    ) : item.image_urls && item.image_urls.length > 0 ? (
+                      <img src={item.image_urls[0]} alt={item.title} className="w-full h-28 object-cover rounded-lg mb-2" />
+                    ) : (
+                      <div className="w-full h-28 bg-gray-100 rounded-lg mb-2 flex items-center justify-center text-gray-400">
+                        <Package className="w-8 h-8" />
                       </div>
-                      <p className="text-sm text-gray-500 mb-2">{item.description}</p>
-                      <div className="flex items-center gap-3 text-xs text-gray-400">
-                        <Badge variant="outline" className="text-xs">{item.category}</Badge>
-                        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{item.price_per_day}/day</span>
-                        <span className="inline-flex items-center gap-1">
-                          <button
-                            onClick={() => navigate(`/profile/${item.owner_id}`)}
-                            className="inline-flex items-center gap-1 hover:opacity-70 transition-opacity"
-                          >
-                            {item.owner_avatar_url ? (
-                              <img src={item.owner_avatar_url} alt={item.owner_name} className="w-4 h-4 rounded-full object-cover" />
-                            ) : (
-                              <span className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-gray-500" style={{fontSize: '0.5rem'}}>{item.owner_name?.charAt(0)?.toUpperCase()}</span>
-                            )}
-                            <span className="hover:text-emerald-600">{item.owner_name}</span>
-                          </button>
-                          {item.owner_avg_rating != null && (
-                            <span className="text-amber-600 inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{item.owner_avg_rating}</span>
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex gap-1 ml-2">
-                      {item.owner_id === user?.id && (
-                        <>
-                          <Button size="sm" variant="outline" onClick={() => openEditItem(item)}>
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                          <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleDeleteItem(item.id)}>
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </>
-                      )}
-                      {item.owner_id !== user?.id && item.is_available && (
-                        <>
-                          <Button size="sm" variant="outline" onClick={() => handleMessage(item.owner_id)}>
-                            <Send className="w-3 h-3" />
-                          </Button>
-                          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-xs" onClick={() => { setSelectedItem(item); setShowRentDialog(true); }}>
-                            Rent
-                          </Button>
-                        </>
+                    )}
+                    <h3 className="font-semibold text-sm line-clamp-1" title={item.title}>{item.title}</h3>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-sm text-emerald-600 font-medium">${item.price_per_day}</span>
+                      {item.owner_avg_rating != null && (
+                        <span className="text-amber-600 text-xs inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{item.owner_avg_rating}</span>
                       )}
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                    <Badge variant={item.is_available ? "default" : "secondary"} className={item.is_available ? "bg-emerald-100 text-emerald-700 text-xs mt-2 w-full justify-center" : "text-xs mt-2 w-full justify-center"}>
+                      {item.is_available ? "Available" : "Unavailable"}
+                    </Badge>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </TabsContent>
 
@@ -556,65 +525,31 @@ export default function CommunityPage() {
           {services.length === 0 ? (
             <Card className="text-center py-8"><CardContent><p className="text-gray-400">No services found</p></CardContent></Card>
           ) : (
-            services.map((svc) => (
-              <Card key={svc.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold">{svc.title}</h3>
-                        <Badge variant={svc.is_available ? "default" : "secondary"} className={svc.is_available ? "bg-blue-100 text-blue-700 text-xs" : "text-xs"}>
-                          {svc.is_available ? "Available" : "Unavailable"}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-500 mb-2">{svc.description}</p>
-                      <div className="flex items-center gap-3 text-xs text-gray-400">
-                        <Badge variant="outline" className="text-xs">{svc.category}</Badge>
-                        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{svc.price}</span>
-                        <span className="inline-flex items-center gap-1">
-                          <button
-                            onClick={() => navigate(`/profile/${svc.provider_id}`)}
-                            className="inline-flex items-center gap-1 hover:opacity-70 transition-opacity"
-                          >
-                            {svc.provider_avatar_url ? (
-                              <img src={svc.provider_avatar_url} alt={svc.provider_name} className="w-4 h-4 rounded-full object-cover" />
-                            ) : (
-                              <span className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-gray-500" style={{fontSize: '0.5rem'}}>{svc.provider_name?.charAt(0)?.toUpperCase()}</span>
-                            )}
-                            <span className="hover:text-emerald-600">{svc.provider_name}</span>
-                          </button>
-                          {svc.provider_avg_rating != null && (
-                            <span className="text-amber-600 inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{svc.provider_avg_rating}</span>
-                          )}
-                        </span>
-                      </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {services.map((svc) => (
+                <Card
+                  key={svc.id}
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => { setSelectedService(svc); setShowServiceDetail(true); }}
+                >
+                  <CardContent className="p-3">
+                    <div className="w-full h-28 bg-blue-50 rounded-lg mb-2 flex items-center justify-center text-blue-400">
+                      <Wrench className="w-8 h-8" />
                     </div>
-                    <div className="flex gap-1 ml-2">
-                      {svc.provider_id === user?.id && (
-                        <>
-                          <Button size="sm" variant="outline" onClick={() => openEditService(svc)}>
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                          <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleDeleteService(svc.id)}>
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </>
-                      )}
-                      {svc.provider_id !== user?.id && svc.is_available && (
-                        <>
-                          <Button size="sm" variant="outline" onClick={() => handleMessage(svc.provider_id)}>
-                            <Send className="w-3 h-3" />
-                          </Button>
-                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-xs" onClick={() => { setSelectedService(svc); setShowBookDialog(true); }}>
-                            Book
-                          </Button>
-                        </>
+                    <h3 className="font-semibold text-sm line-clamp-1" title={svc.title}>{svc.title}</h3>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-sm text-blue-600 font-medium">${svc.price}</span>
+                      {svc.provider_avg_rating != null && (
+                        <span className="text-amber-600 text-xs inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{svc.provider_avg_rating}</span>
                       )}
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                    <Badge variant={svc.is_available ? "default" : "secondary"} className={svc.is_available ? "bg-blue-100 text-blue-700 text-xs mt-2 w-full justify-center" : "text-xs mt-2 w-full justify-center"}>
+                      {svc.is_available ? "Available" : "Unavailable"}
+                    </Badge>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </TabsContent>
 
@@ -689,6 +624,117 @@ export default function CommunityPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Item Detail Dialog */}
+      <Dialog open={showItemDetail} onOpenChange={setShowItemDetail}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{selectedItem?.title}</DialogTitle></DialogHeader>
+          {selectedItem && (
+            <div className="space-y-4">
+              {selectedItem.image_urls && selectedItem.image_urls.length > 0 ? (
+                <ItemImageGallery images={selectedItem.image_urls} title={selectedItem.title} />
+              ) : selectedItem.image_url ? (
+                <img src={selectedItem.image_url} alt={selectedItem.title} className="w-full h-48 object-cover rounded-lg" />
+              ) : null}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="outline" className="text-xs">{selectedItem.category}</Badge>
+                  <Badge variant={selectedItem.is_available ? "default" : "secondary"} className={selectedItem.is_available ? "bg-emerald-100 text-emerald-700 text-xs" : "text-xs"}>
+                    {selectedItem.is_available ? "Available" : "Unavailable"}
+                  </Badge>
+                </div>
+                <p className="text-2xl font-bold text-emerald-600">${selectedItem.price_per_day}<span className="text-sm text-gray-400 font-normal">/day</span></p>
+              </div>
+              <p className="text-sm text-gray-600">{selectedItem.description}</p>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                {selectedItem.owner_avatar_url ? (
+                  <img src={selectedItem.owner_avatar_url} alt={selectedItem.owner_name} className="w-6 h-6 rounded-full object-cover" />
+                ) : (
+                  <span className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">{selectedItem.owner_name?.charAt(0)?.toUpperCase()}</span>
+                )}
+                <span>{selectedItem.owner_name}</span>
+                {selectedItem.owner_avg_rating != null && (
+                  <span className="text-amber-600 inline-flex items-center gap-0.5"><Star className="w-4 h-4 fill-amber-400 text-amber-400" />{selectedItem.owner_avg_rating}</span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                {selectedItem.owner_id === user?.id ? (
+                  <>
+                    <Button variant="outline" className="flex-1" onClick={() => { setShowItemDetail(false); setEditItem({ title: selectedItem.title, description: selectedItem.description, category: selectedItem.category, price_per_day: selectedItem.price_per_day }); setEditExistingImageUrls(selectedItem.image_urls || []); setShowEditItem(true); }}>
+                      <Edit className="w-4 h-4 mr-1" /> Edit
+                    </Button>
+                    <Button variant="outline" className="flex-1 text-red-600 border-red-200 hover:bg-red-50" onClick={() => { setShowItemDetail(false); handleDeleteItem(selectedItem.id); }}>
+                      <Trash2 className="w-4 h-4 mr-1" /> Delete
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" className="flex-1" onClick={() => { setShowItemDetail(false); handleMessage(selectedItem.owner_id); }}>
+                      <Send className="w-4 h-4 mr-1" /> Message
+                    </Button>
+                    <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700" onClick={() => { setShowItemDetail(false); setShowRentDialog(true); }}>
+                      Rent
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Service Detail Dialog */}
+      <Dialog open={showServiceDetail} onOpenChange={setShowServiceDetail}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{selectedService?.title}</DialogTitle></DialogHeader>
+          {selectedService && (
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="outline" className="text-xs">{selectedService.category}</Badge>
+                  <Badge variant={selectedService.is_available ? "default" : "secondary"} className={selectedService.is_available ? "bg-blue-100 text-blue-700 text-xs" : "text-xs"}>
+                    {selectedService.is_available ? "Available" : "Unavailable"}
+                  </Badge>
+                </div>
+                <p className="text-2xl font-bold text-blue-600">${selectedService.price}</p>
+              </div>
+              <p className="text-sm text-gray-600">{selectedService.description}</p>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                {selectedService.provider_avatar_url ? (
+                  <img src={selectedService.provider_avatar_url} alt={selectedService.provider_name} className="w-6 h-6 rounded-full object-cover" />
+                ) : (
+                  <span className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">{selectedService.provider_name?.charAt(0)?.toUpperCase()}</span>
+                )}
+                <span>{selectedService.provider_name}</span>
+                {selectedService.provider_avg_rating != null && (
+                  <span className="text-amber-600 inline-flex items-center gap-0.5"><Star className="w-4 h-4 fill-amber-400 text-amber-400" />{selectedService.provider_avg_rating}</span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                {selectedService.provider_id === user?.id ? (
+                  <>
+                    <Button variant="outline" className="flex-1" onClick={() => { setShowServiceDetail(false); setEditServiceForm({ title: selectedService.title, description: selectedService.description, category: selectedService.category, price: selectedService.price }); setEditServiceId(selectedService.id); setShowEditService(true); }}>
+                      <Edit className="w-4 h-4 mr-1" /> Edit
+                    </Button>
+                    <Button variant="outline" className="flex-1 text-red-600 border-red-200 hover:bg-red-50" onClick={() => { setShowServiceDetail(false); handleDeleteService(selectedService.id); }}>
+                      <Trash2 className="w-4 h-4 mr-1" /> Delete
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" className="flex-1" onClick={() => { setShowServiceDetail(false); handleMessage(selectedService.provider_id); }}>
+                      <Send className="w-4 h-4 mr-1" /> Message
+                    </Button>
+                    <Button className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={() => { setShowServiceDetail(false); setShowBookDialog(true); }}>
+                      Book
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Rent Dialog */}
       <Dialog open={showRentDialog} onOpenChange={setShowRentDialog}>
