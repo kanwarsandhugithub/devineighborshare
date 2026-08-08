@@ -708,7 +708,7 @@ export default function CommunityPage() {
               <div className="flex gap-2">
                 {selectedItem.owner_id === user?.id ? (
                   <>
-                    <Button variant="outline" className="flex-1" onClick={() => { setShowItemDetail(false); setEditItem({ title: selectedItem.title, description: selectedItem.description, category: selectedItem.category, price_per_day: selectedItem.price_per_day, price_unit: selectedItem.price_unit || "per_day" }); setEditExistingImageUrls(selectedItem.image_urls || []); setShowEditItem(true); }}>>
+                    <Button variant="outline" className="flex-1" onClick={() => { setShowItemDetail(false); setEditItem({ title: selectedItem.title, description: selectedItem.description, category: selectedItem.category, price_per_day: selectedItem.price_per_day, price_unit: selectedItem.price_unit || "per_day" }); setEditExistingImageUrls(selectedItem.image_urls || []); setShowEditItem(true); }}>
                       <Edit className="w-4 h-4 mr-1" /> Edit
                     </Button>
                     <Button variant="outline" className="flex-1 text-red-600 border-red-200 hover:bg-red-50" onClick={() => { setShowItemDetail(false); handleDeleteItem(selectedItem.id); }}>
@@ -761,7 +761,7 @@ export default function CommunityPage() {
               <div className="flex gap-2">
                 {selectedService.provider_id === user?.id ? (
                   <>
-                    <Button variant="outline" className="flex-1" onClick={() => { setShowServiceDetail(false); setEditServiceForm({ title: selectedService.title, description: selectedService.description, category: selectedService.category, price: selectedService.price, price_unit: selectedService.price_unit || "per_service" }); setEditServiceId(selectedService.id); setShowEditService(true); }}>>
+                    <Button variant="outline" className="flex-1" onClick={() => { setShowServiceDetail(false); setEditServiceForm({ title: selectedService.title, description: selectedService.description, category: selectedService.category, price: selectedService.price, price_unit: selectedService.price_unit || "per_service" }); setEditServiceId(selectedService.id); setShowEditService(true); }}>
                       <Edit className="w-4 h-4 mr-1" /> Edit
                     </Button>
                     <Button variant="outline" className="flex-1 text-red-600 border-red-200 hover:bg-red-50" onClick={() => { setShowServiceDetail(false); handleDeleteService(selectedService.id); }}>
