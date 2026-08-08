@@ -423,33 +423,68 @@ export default function CommunityPage() {
           {items.length === 0 ? (
             <Card className="text-center py-8"><CardContent><p className="text-gray-400">No items found</p></CardContent></Card>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-4">
               {items.map((item) => (
                 <Card
                   key={item.id}
-                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
                   onClick={() => { setSelectedItem(item); setShowItemDetail(true); }}
                 >
-                  <CardContent className="p-3">
+                  <div className="relative">
                     {item.image_url ? (
-                      <img src={item.image_url} alt={item.title} className="w-full h-28 object-cover rounded-lg mb-2" />
+                      <img src={item.image_url} alt={item.title} className="w-full h-56 object-cover" />
                     ) : item.image_urls && item.image_urls.length > 0 ? (
-                      <img src={item.image_urls[0]} alt={item.title} className="w-full h-28 object-cover rounded-lg mb-2" />
+                      <img src={item.image_urls[0]} alt={item.title} className="w-full h-56 object-cover" />
                     ) : (
-                      <div className="w-full h-28 bg-gray-100 rounded-lg mb-2 flex items-center justify-center text-gray-400">
-                        <Package className="w-8 h-8" />
+                      <div className="w-full h-56 bg-gray-100 flex items-center justify-center text-gray-400">
+                        <Package className="w-16 h-16" />
                       </div>
                     )}
-                    <h3 className="font-semibold text-sm line-clamp-1" title={item.title}>{item.title}</h3>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-sm text-emerald-600 font-medium">${item.price_per_day}</span>
+                    {/* Top overlay badges */}
+                    <div className="absolute top-3 left-3 flex items-center gap-2">
+                      <Badge className="bg-white/90 text-emerald-700 hover:bg-white/90 text-xs font-bold uppercase px-2 py-1">
+                        <Package className="w-3 h-3 mr-1" /> {item.category}
+                      </Badge>
                       {item.owner_avg_rating != null && (
-                        <span className="text-amber-600 text-xs inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{item.owner_avg_rating}</span>
+                        <Badge className="bg-white/90 text-amber-700 hover:bg-white/90 text-xs font-bold px-2 py-1">
+                          Good
+                        </Badge>
                       )}
                     </div>
-                    <Badge variant={item.is_available ? "default" : "secondary"} className={item.is_available ? "bg-emerald-100 text-emerald-700 text-xs mt-2 w-full justify-center" : "text-xs mt-2 w-full justify-center"}>
-                      {item.is_available ? "Available" : "Unavailable"}
-                    </Badge>
+                    <div className="absolute top-3 right-3">
+                      <Badge className={item.is_available ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 text-xs font-bold uppercase px-2 py-1" : "bg-gray-100 text-gray-700 hover:bg-gray-100 text-xs font-bold uppercase px-2 py-1"}>
+                        {item.is_available ? "Available" : "Unavailable"}
+                      </Badge>
+                    </div>
+                    {/* Bottom overlay badges */}
+                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                      <Badge className="bg-black/60 text-white hover:bg-black/60 text-xs font-medium px-2 py-1">
+                        {item.category.split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                      </Badge>
+                      <Badge className="bg-black/60 text-white hover:bg-black/60 text-xs font-medium px-2 py-1">
+                        Value: ${item.price_per_day}
+                      </Badge>
+                    </div>
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-bold text-lg mb-2">{item.title}</h3>
+                    <p className="text-sm text-gray-500 mb-4">{item.description}</p>
+                    <div className="flex items-center gap-3 pt-3 border-t">
+                      {item.owner_avatar_url ? (
+                        <img src={item.owner_avatar_url} alt={item.owner_name} className="w-10 h-10 rounded-full object-cover" />
+                      ) : (
+                        <span className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm">{item.owner_name?.charAt(0)?.toUpperCase()}</span>
+                      )}
+                      <div className="flex-1">
+                        <p className="font-semibold text-sm">{item.owner_name}</p>
+                        <p className="text-xs text-gray-400">Owner</p>
+                      </div>
+                      {item.owner_avg_rating != null && (
+                        <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-xs font-bold inline-flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {item.owner_avg_rating}
+                        </Badge>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               ))}
