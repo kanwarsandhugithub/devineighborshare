@@ -143,7 +143,7 @@ export default function HomePage() {
 
   const handleListItem = () => {
     if (selectedCommunityId) {
-      navigate(`/communities/${selectedCommunityId}?add=item`);
+      navigate(`/community/${selectedCommunityId}?add=item`);
     } else {
       alert("Please select a community first");
     }
@@ -152,7 +152,7 @@ export default function HomePage() {
 
   const handlePostService = () => {
     if (selectedCommunityId) {
-      navigate(`/communities/${selectedCommunityId}?add=service`);
+      navigate(`/community/${selectedCommunityId}?add=service`);
     } else {
       alert("Please select a community first");
     }
