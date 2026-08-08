@@ -105,8 +105,8 @@ export default function HomePage() {
   const [showBookDialog, setShowBookDialog] = useState(false);
   const [showWaiverDialog, setShowWaiverDialog] = useState(false);
   const [waiverType, setWaiverType] = useState<"rental" | "booking" | null>(null);
-  const [selectedItem] = useState<Item | null>(null);
-  const [selectedService] = useState<Service | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [rentalForm, setRentalForm] = useState({ start_date: "", end_date: "", message: "" });
 
   // Handle URL parameters for create dialogs
@@ -618,9 +618,19 @@ export default function HomePage() {
                           <span className="text-amber-600 text-xs inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{item.owner_avg_rating}</span>
                         )}
                       </div>
-                      <Badge variant={item.is_available ? "default" : "secondary"} className={item.is_available ? "bg-emerald-100 text-emerald-700 text-[10px] mt-1 w-full justify-center" : "text-[10px] mt-1 w-full justify-center"}>
-                        {item.is_available ? "Available" : "Rented"}
-                      </Badge>
+                      <div className="mt-1 flex items-center gap-1">
+                        <Badge variant={item.is_available ? "default" : "secondary"} className={item.is_available ? "bg-emerald-100 text-emerald-700 text-[10px] flex-1 justify-center" : "text-[10px] flex-1 justify-center"}>
+                          {item.is_available ? "Available" : "Rented"}
+                        </Badge>
+                        {item.is_available && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setSelectedItem(item); setShowRentDialog(true); }}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] px-2 py-0.5 rounded"
+                          >
+                            Rent
+                          </button>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -666,9 +676,19 @@ export default function HomePage() {
                           <span className="text-amber-600 text-xs inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{svc.provider_avg_rating}</span>
                         )}
                       </div>
-                      <Badge variant={svc.is_available ? "default" : "secondary"} className={svc.is_available ? "bg-blue-100 text-blue-700 text-[10px] mt-1 w-full justify-center" : "text-[10px] mt-1 w-full justify-center"}>
-                        {svc.is_available ? "Available" : "Booked"}
-                      </Badge>
+                      <div className="mt-1 flex items-center gap-1">
+                        <Badge variant={svc.is_available ? "default" : "secondary"} className={svc.is_available ? "bg-blue-100 text-blue-700 text-[10px] flex-1 justify-center" : "text-[10px] flex-1 justify-center"}>
+                          {svc.is_available ? "Available" : "Booked"}
+                        </Badge>
+                        {svc.is_available && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setSelectedService(svc); setShowBookDialog(true); }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] px-2 py-0.5 rounded"
+                          >
+                            Book
+                          </button>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
