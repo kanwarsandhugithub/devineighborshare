@@ -452,7 +452,7 @@ export default function CommunityPage() {
                     </div>
                     <div className="absolute bottom-2 right-2">
                       <Badge className="bg-black/60 text-white hover:bg-black/60 text-[10px] font-medium px-1.5 py-0.5">
-                        Value: ${item.price_per_day}
+                        ${item.price_per_day}
                       </Badge>
                     </div>
                   </div>
@@ -552,7 +552,7 @@ export default function CommunityPage() {
                     </div>
                     <div className="absolute bottom-2 right-2">
                       <Badge className="bg-black/60 text-white hover:bg-black/60 text-[10px] font-medium px-1.5 py-0.5">
-                        From ${svc.price}
+                        ${svc.price}
                       </Badge>
                     </div>
                   </div>
