@@ -423,7 +423,7 @@ export default function CommunityPage() {
           {items.length === 0 ? (
             <Card className="text-center py-8"><CardContent><p className="text-gray-400">No items found</p></CardContent></Card>
           ) : (
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {items.map((item) => (
                 <Card
                   key={item.id}
@@ -432,57 +432,42 @@ export default function CommunityPage() {
                 >
                   <div className="relative">
                     {item.image_url ? (
-                      <img src={item.image_url} alt={item.title} className="w-full h-56 object-cover" />
+                      <img src={item.image_url} alt={item.title} className="w-full h-36 object-cover" />
                     ) : item.image_urls && item.image_urls.length > 0 ? (
-                      <img src={item.image_urls[0]} alt={item.title} className="w-full h-56 object-cover" />
+                      <img src={item.image_urls[0]} alt={item.title} className="w-full h-36 object-cover" />
                     ) : (
-                      <div className="w-full h-56 bg-gray-100 flex items-center justify-center text-gray-400">
-                        <Package className="w-16 h-16" />
+                      <div className="w-full h-36 bg-gray-100 flex items-center justify-center text-gray-400">
+                        <Package className="w-10 h-10" />
                       </div>
                     )}
-                    {/* Top overlay badges */}
-                    <div className="absolute top-3 left-3 flex items-center gap-2">
-                      <Badge className="bg-white/90 text-emerald-700 hover:bg-white/90 text-xs font-bold uppercase px-2 py-1">
-                        <Package className="w-3 h-3 mr-1" /> {item.category}
+                    <div className="absolute top-2 left-2">
+                      <Badge className="bg-white/90 text-emerald-700 hover:bg-white/90 text-[10px] font-bold uppercase px-1.5 py-0.5">
+                        <Package className="w-2.5 h-2.5 mr-0.5" /> {item.category}
                       </Badge>
-                      {item.owner_avg_rating != null && (
-                        <Badge className="bg-white/90 text-amber-700 hover:bg-white/90 text-xs font-bold px-2 py-1">
-                          Good
-                        </Badge>
-                      )}
                     </div>
-                    <div className="absolute top-3 right-3">
-                      <Badge className={item.is_available ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 text-xs font-bold uppercase px-2 py-1" : "bg-gray-100 text-gray-700 hover:bg-gray-100 text-xs font-bold uppercase px-2 py-1"}>
+                    <div className="absolute top-2 right-2">
+                      <Badge className={item.is_available ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 text-[10px] font-bold uppercase px-1.5 py-0.5" : "bg-gray-100 text-gray-700 hover:bg-gray-100 text-[10px] font-bold uppercase px-1.5 py-0.5"}>
                         {item.is_available ? "Available" : "Unavailable"}
                       </Badge>
                     </div>
-                    {/* Bottom overlay badges */}
-                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                      <Badge className="bg-black/60 text-white hover:bg-black/60 text-xs font-medium px-2 py-1">
-                        {item.category.split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                      </Badge>
-                      <Badge className="bg-black/60 text-white hover:bg-black/60 text-xs font-medium px-2 py-1">
+                    <div className="absolute bottom-2 right-2">
+                      <Badge className="bg-black/60 text-white hover:bg-black/60 text-[10px] font-medium px-1.5 py-0.5">
                         Value: ${item.price_per_day}
                       </Badge>
                     </div>
                   </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-bold text-lg mb-2">{item.title}</h3>
-                    <p className="text-sm text-gray-500 mb-4">{item.description}</p>
-                    <div className="flex items-center gap-3 pt-3 border-t">
+                  <CardContent className="p-3">
+                    <h3 className="font-semibold text-sm line-clamp-1" title={item.title}>{item.title}</h3>
+                    <p className="text-xs text-gray-500 line-clamp-2 mt-1 mb-2">{item.description}</p>
+                    <div className="flex items-center gap-2 pt-2 border-t">
                       {item.owner_avatar_url ? (
-                        <img src={item.owner_avatar_url} alt={item.owner_name} className="w-10 h-10 rounded-full object-cover" />
+                        <img src={item.owner_avatar_url} alt={item.owner_name} className="w-6 h-6 rounded-full object-cover" />
                       ) : (
-                        <span className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm">{item.owner_name?.charAt(0)?.toUpperCase()}</span>
+                        <span className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-[10px]">{item.owner_name?.charAt(0)?.toUpperCase()}</span>
                       )}
-                      <div className="flex-1">
-                        <p className="font-semibold text-sm">{item.owner_name}</p>
-                        <p className="text-xs text-gray-400">Owner</p>
-                      </div>
+                      <p className="font-medium text-xs flex-1 truncate" title={item.owner_name}>{item.owner_name}</p>
                       {item.owner_avg_rating != null && (
-                        <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-xs font-bold inline-flex items-center gap-1">
-                          <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {item.owner_avg_rating}
-                        </Badge>
+                        <span className="text-amber-600 text-xs inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{item.owner_avg_rating}</span>
                       )}
                     </div>
                   </CardContent>
@@ -544,27 +529,47 @@ export default function CommunityPage() {
           {services.length === 0 ? (
             <Card className="text-center py-8"><CardContent><p className="text-gray-400">No services found</p></CardContent></Card>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {services.map((svc) => (
                 <Card
                   key={svc.id}
-                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
                   onClick={() => { setSelectedService(svc); setShowServiceDetail(true); }}
                 >
-                  <CardContent className="p-3">
-                    <div className="w-full h-28 bg-blue-50 rounded-lg mb-2 flex items-center justify-center text-blue-400">
-                      <Wrench className="w-8 h-8" />
+                  <div className="relative">
+                    <div className="w-full h-36 bg-blue-50 flex items-center justify-center text-blue-400">
+                      <Wrench className="w-10 h-10" />
                     </div>
+                    <div className="absolute top-2 left-2">
+                      <Badge className="bg-white/90 text-blue-700 hover:bg-white/90 text-[10px] font-bold uppercase px-1.5 py-0.5">
+                        <Wrench className="w-2.5 h-2.5 mr-0.5" /> {svc.category}
+                      </Badge>
+                    </div>
+                    <div className="absolute top-2 right-2">
+                      <Badge className={svc.is_available ? "bg-blue-100 text-blue-700 hover:bg-blue-100 text-[10px] font-bold uppercase px-1.5 py-0.5" : "bg-gray-100 text-gray-700 hover:bg-gray-100 text-[10px] font-bold uppercase px-1.5 py-0.5"}>
+                        {svc.is_available ? "Available" : "Unavailable"}
+                      </Badge>
+                    </div>
+                    <div className="absolute bottom-2 right-2">
+                      <Badge className="bg-black/60 text-white hover:bg-black/60 text-[10px] font-medium px-1.5 py-0.5">
+                        From ${svc.price}
+                      </Badge>
+                    </div>
+                  </div>
+                  <CardContent className="p-3">
                     <h3 className="font-semibold text-sm line-clamp-1" title={svc.title}>{svc.title}</h3>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-sm text-blue-600 font-medium">${svc.price}</span>
+                    <p className="text-xs text-gray-500 line-clamp-2 mt-1 mb-2">{svc.description}</p>
+                    <div className="flex items-center gap-2 pt-2 border-t">
+                      {svc.provider_avatar_url ? (
+                        <img src={svc.provider_avatar_url} alt={svc.provider_name} className="w-6 h-6 rounded-full object-cover" />
+                      ) : (
+                        <span className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-[10px]">{svc.provider_name?.charAt(0)?.toUpperCase()}</span>
+                      )}
+                      <p className="font-medium text-xs flex-1 truncate" title={svc.provider_name}>{svc.provider_name}</p>
                       {svc.provider_avg_rating != null && (
                         <span className="text-amber-600 text-xs inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{svc.provider_avg_rating}</span>
                       )}
                     </div>
-                    <Badge variant={svc.is_available ? "default" : "secondary"} className={svc.is_available ? "bg-blue-100 text-blue-700 text-xs mt-2 w-full justify-center" : "text-xs mt-2 w-full justify-center"}>
-                      {svc.is_available ? "Available" : "Unavailable"}
-                    </Badge>
                   </CardContent>
                 </Card>
               ))}
