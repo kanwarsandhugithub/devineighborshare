@@ -256,16 +256,6 @@ export default function CommunityPage() {
     navigate(`/messages/${userId}`);
   };
 
-  const openEditItem = (item: Item) => {
-    setSelectedItem(item);
-    setEditItem({ title: item.title, description: item.description, category: item.category, price_per_day: item.price_per_day });
-    setEditExistingImageUrls(item.image_urls && item.image_urls.length > 0 ? [...item.image_urls] : (item.image_url ? [item.image_url] : []));
-    setEditNewImageFiles([]);
-    setEditNewImagePreviews([]);
-    setError("");
-    setShowEditItem(true);
-  };
-
   const handleEditItemImages = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
@@ -305,12 +295,6 @@ export default function CommunityPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed");
     }
-  };
-
-  const openEditService = (svc: Service) => {
-    setEditServiceId(svc.id);
-    setEditServiceForm({ title: svc.title, description: svc.description, category: svc.category, price: svc.price });
-    setShowEditService(true);
   };
 
   const handleEditService = async (e: React.FormEvent) => {
