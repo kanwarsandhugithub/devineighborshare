@@ -101,47 +101,6 @@ async def get_my_items(current_user_id: int = Depends(get_current_user_id)):
         return results
 
 
-@router.get("/{item_id}", response_model=ItemOut)
-async def update_item(item_id: int, data: ItemUpdate, current_user_id: int = Depends(get_current_user_id)):
-    with get_db() as db:
-        item = db.execute("SELECT * FROM items WHERE id = ?", (item_id,)).fetchone()
-        if not item:
-            raise HTTPException(status_code=404, detail="Item not found")
-        if item["owner_id"] != current_user_id:
-            raise HTTPException(status_code=403, detail="Not the owner")
-        fields = {}
-        for field in ["title", "description", "category", "price_per_day", "image_url"]:
-            val = getattr(data, field, None)
-            if val is not None:
-                fields[field] = val
-        if data.is_available is not None:
-            fields["is_available"] = 1 if data.is_available else 0
-        # Handle image_urls update
-        if data.image_urls is not None:
-            if len(data.image_urls) > 0:
-                fields["image_url"] = data.image_urls[0]
-            else:
-                fields["image_url"] = None
-            # Replace all item images
-            db.execute("DELETE FROM item_images WHERE item_id = ?", (item_id,))
-            for idx, url in enumerate(data.image_urls[:5]):
-                db.execute(
-                    "INSERT INTO item_images (item_id, image_url, display_order) VALUES (?, ?, ?)",
-                    (item_id, url, idx),
-                )
-        if fields:
-            set_clause = ", ".join(f"{k} = ?" for k in fields)
-            values = list(fields.values()) + [item_id]
-            db.execute(f"UPDATE items SET {set_clause} WHERE id = ?", values)
-        row = db.execute(
-            """SELECT i.*, u.full_name as owner_name FROM items i
-               JOIN users u ON u.id = i.owner_id WHERE i.id = ?""",
-            (item_id,),
-        ).fetchone()
-        image_urls = _get_item_image_urls(db, item_id)
-    return _item_from_row(row, image_urls)
-
-
 @router.put("/{item_id}", response_model=ItemOut)
 async def update_item(item_id: int, data: ItemUpdate, current_user_id: int = Depends(get_current_user_id)):
     with get_db() as db:
@@ -250,36 +209,6 @@ async def get_my_rental_requests(current_user_id: int = Depends(get_current_user
             (current_user_id, current_user_id),
         ).fetchall()
     return [_rental_from_row(r) for r in rows]
-
-
-@router.get("/my", response_model=List[ItemOut])
-async def get_my_items(current_user_id: int = Depends(get_current_user_id)):
-    with get_db() as db:
-        rows = db.execute(
-            """SELECT i.*, u.full_name as owner_name FROM items i
-               JOIN users u ON u.id = i.owner_id WHERE i.owner_id = ?
-               ORDER BY i.created_at DESC""",
-            (current_user_id,),
-        ).fetchall()
-        results = []
-        for r in rows:
-            image_urls = _get_item_image_urls(db, r["id"])
-            results.append(_item_from_row(r, image_urls))
-        return results
-
-
-@router.get("/{item_id}", response_model=ItemOut)
-async def get_item(item_id: int):
-    with get_db() as db:
-        row = db.execute(
-            """SELECT i.*, u.full_name as owner_name FROM items i
-               JOIN users u ON u.id = i.owner_id WHERE i.id = ?""",
-            (item_id,),
-        ).fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="Item not found")
-        image_urls = _get_item_image_urls(db, item_id)
-    return _item_from_row(row, image_urls)
 
 
 @router.put("/rentals/{request_id}", response_model=RentalRequestOut)

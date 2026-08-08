@@ -54,6 +54,18 @@ async def get_community_services(community_id: int, category: str = None, search
     return [_service_from_row(r) for r in rows]
 
 
+@router.get("/my", response_model=List[ServiceOut])
+async def get_my_services(current_user_id: int = Depends(get_current_user_id)):
+    with get_db() as db:
+        rows = db.execute(
+            """SELECT s.*, u.full_name as provider_name FROM services s
+               JOIN users u ON u.id = s.provider_id WHERE s.provider_id = ?
+               ORDER BY s.created_at DESC""",
+            (current_user_id,),
+        ).fetchall()
+    return [_service_from_row(r) for r in rows]
+
+
 @router.get("/{service_id}", response_model=ServiceOut)
 async def get_service(service_id: int):
     with get_db() as db:
@@ -160,21 +172,6 @@ async def get_my_bookings(current_user_id: int = Depends(get_current_user_id)):
             (current_user_id, current_user_id),
         ).fetchall()
     return [_booking_from_row(r) for r in rows]
-
-
-@router.get("/my", response_model=List[ServiceOut])
-async def get_my_services(current_user_id: int = Depends(get_current_user_id)):
-    with get_db() as db:
-        rows = db.execute(
-            """SELECT s.*, u.full_name as provider_name FROM services s
-               JOIN users u ON u.id = s.provider_id WHERE s.provider_id = ?
-               ORDER BY s.created_at DESC""",
-            (current_user_id,),
-        ).fetchall()
-    return [_service_from_row(r) for r in rows]
-
-
-@router.get("/{service_id}", response_model=ServiceOut)
 
 
 @router.put("/bookings/{booking_id}", response_model=ServiceBookingOut)
