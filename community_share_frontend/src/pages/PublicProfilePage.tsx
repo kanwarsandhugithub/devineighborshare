@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Star, ArrowLeft, MessageSquare } from "lucide-react";
+import { Star, ArrowLeft, MessageSquare, Package, Wrench } from "lucide-react";
 
 interface User {
   id: number;
@@ -18,6 +18,27 @@ interface User {
   avg_rating: number | null;
 }
 
+interface Item {
+  id: number; title: string; description: string; category: string;
+  price_per_day: number; price_unit: string; image_urls: string[]; is_available: boolean; rental_count: number;
+}
+
+interface Service {
+  id: number; title: string; description: string; category: string;
+  price: number; price_unit: string; is_available: boolean; booking_count: number;
+}
+
+function formatPrice(price: number, unit: string) {
+  const labels: Record<string, string> = {
+    per_day: "/day",
+    per_month: "/month",
+    per_24_hours: "/24 hrs",
+    flat_fee: "",
+    per_service: "",
+  };
+  return `$${price}${labels[unit] || ""}`;
+}
+
 interface Review {
   id: number; reviewer_id: number; rating: number;
   comment: string; reviewer_name: string; reviewer_avatar_url?: string; reviewer_avg_rating?: number; created_at: string;
@@ -28,17 +49,24 @@ export default function PublicProfilePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [items, setItems] = useState<Item[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (userId) {
+      const uid = parseInt(userId);
       Promise.all([
-        api.getUser(parseInt(userId)),
-        api.getUserReviews(parseInt(userId))
+        api.getUser(uid),
+        api.getUserReviews(uid),
+        api.getUserItems(uid),
+        api.getUserServices(uid)
       ])
-        .then(([userData, reviewsData]) => {
+        .then(([userData, reviewsData, itemsData, servicesData]) => {
           setUser(userData);
           setReviews(reviewsData);
+          setItems(itemsData);
+          setServices(servicesData);
         })
         .catch(() => {
           // Handle error
@@ -110,6 +138,60 @@ export default function PublicProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      {items.length > 0 && (
+        <>
+          <h2 className="font-semibold text-gray-700 mb-3">Items ({items.length})</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+            {items.map((item) => (
+              <Card key={item.id} className="overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="flex">
+                    <div className="w-24 h-24 flex-shrink-0 bg-gray-100">
+                      {item.image_urls[0] ? (
+                        <img src={item.image_urls[0]} alt={item.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400"><Package className="w-8 h-8" /></div>
+                      )}
+                    </div>
+                    <div className="p-3 flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm line-clamp-1">{item.title}</h3>
+                      <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{item.category}</p>
+                      <p className="text-xs font-medium text-emerald-600 mt-1">{formatPrice(item.price_per_day, item.price_unit)}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">Rented {item.rental_count}x · {item.is_available ? "Available" : "Not available"}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
+
+      {services.length > 0 && (
+        <>
+          <h2 className="font-semibold text-gray-700 mb-3">Services ({services.length})</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+            {services.map((svc) => (
+              <Card key={svc.id} className="overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="flex">
+                    <div className="w-24 h-24 flex-shrink-0 bg-blue-50 flex items-center justify-center text-blue-400">
+                      <Wrench className="w-8 h-8" />
+                    </div>
+                    <div className="p-3 flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm line-clamp-1">{svc.title}</h3>
+                      <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{svc.category}</p>
+                      <p className="text-xs font-medium text-blue-600 mt-1">{formatPrice(svc.price, svc.price_unit)}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">Booked {svc.booking_count}x · {svc.is_available ? "Available" : "Not available"}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
 
       <Separator className="my-4" />
 

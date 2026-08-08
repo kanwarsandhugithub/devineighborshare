@@ -53,6 +53,8 @@ export const api = {
 
   // Users
   getUser: (id: number) => request(`/api/users/${id}`),
+  getUserItems: (id: number) => request(`/api/items/user/${id}`),
+  getUserServices: (id: number) => request(`/api/services/user/${id}`),
   updateProfile: (data: { full_name?: string; phone?: string; bio?: string; unit?: string; avatar_url?: string }) =>
     request("/api/users/me", { method: "PUT", body: JSON.stringify(data) }),
 

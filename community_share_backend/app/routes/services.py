@@ -69,6 +69,22 @@ async def get_my_services(current_user_id: int = Depends(get_current_user_id)):
     return [_service_from_row(r) for r in rows]
 
 
+@router.get("/user/{user_id}", response_model=List[ServiceOut])
+async def get_user_services(user_id: int, current_user_id: int = Depends(get_current_user_id)):
+    with get_db() as db:
+        rows = db.execute(
+            """SELECT s.*, u.full_name as provider_name, u.avatar_url as provider_avatar_url,
+               (SELECT ROUND(AVG(rv.rating), 1) FROM reviews rv WHERE rv.reviewed_user_id = s.provider_id) as provider_avg_rating,
+               (SELECT COUNT(*) FROM service_bookings sb WHERE sb.service_id = s.id AND sb.status NOT IN ('pending', 'rejected')) as booking_count
+               FROM services s
+               JOIN users u ON u.id = s.provider_id
+               WHERE s.provider_id = ?
+               ORDER BY s.created_at DESC""",
+            (user_id,),
+        ).fetchall()
+    return [_service_from_row(r) for r in rows]
+
+
 @router.get("/{service_id}", response_model=ServiceOut)
 async def get_service(service_id: int):
     with get_db() as db:

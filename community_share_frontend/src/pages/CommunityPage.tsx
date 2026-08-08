@@ -710,7 +710,12 @@ export default function CommunityPage() {
                 ) : (
                   <span className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">{selectedItem.owner_name?.charAt(0)?.toUpperCase()}</span>
                 )}
-                <span>{selectedItem.owner_name}</span>
+                <button
+                  className="font-medium text-emerald-700 hover:underline"
+                  onClick={() => { setShowItemDetail(false); navigate(`/profile/${selectedItem.owner_id}`); }}
+                >
+                  {selectedItem.owner_name}
+                </button>
                 {selectedItem.owner_avg_rating != null && (
                   <span className="text-amber-600 inline-flex items-center gap-0.5"><Star className="w-4 h-4 fill-amber-400 text-amber-400" />{selectedItem.owner_avg_rating}</span>
                 )}
@@ -763,7 +768,12 @@ export default function CommunityPage() {
                 ) : (
                   <span className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">{selectedService.provider_name?.charAt(0)?.toUpperCase()}</span>
                 )}
-                <span>{selectedService.provider_name}</span>
+                <button
+                  className="font-medium text-blue-700 hover:underline"
+                  onClick={() => { setShowServiceDetail(false); navigate(`/profile/${selectedService.provider_id}`); }}
+                >
+                  {selectedService.provider_name}
+                </button>
                 {selectedService.provider_avg_rating != null && (
                   <span className="text-amber-600 inline-flex items-center gap-0.5"><Star className="w-4 h-4 fill-amber-400 text-amber-400" />{selectedService.provider_avg_rating}</span>
                 )}

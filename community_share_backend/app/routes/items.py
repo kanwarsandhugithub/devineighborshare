@@ -90,6 +90,26 @@ async def get_my_items(current_user_id: int = Depends(get_current_user_id)):
         return results
 
 
+@router.get("/user/{user_id}", response_model=List[ItemOut])
+async def get_user_items(user_id: int, current_user_id: int = Depends(get_current_user_id)):
+    with get_db() as db:
+        rows = db.execute(
+            """SELECT i.*, u.full_name as owner_name, u.avatar_url as owner_avatar_url,
+               (SELECT ROUND(AVG(rv.rating), 1) FROM reviews rv WHERE rv.reviewed_user_id = i.owner_id) as owner_avg_rating,
+               (SELECT COUNT(*) FROM rental_requests rr WHERE rr.item_id = i.id AND rr.status NOT IN ('pending', 'rejected')) as rental_count
+               FROM items i
+               JOIN users u ON u.id = i.owner_id
+               WHERE i.owner_id = ?
+               ORDER BY i.created_at DESC""",
+            (user_id,),
+        ).fetchall()
+        results = []
+        for r in rows:
+            image_urls = _get_item_image_urls(db, r["id"])
+            results.append(_item_from_row(r, image_urls))
+    return results
+
+
 @router.get("/{item_id}", response_model=ItemOut)
 async def get_item(item_id: int):
     with get_db() as db:
