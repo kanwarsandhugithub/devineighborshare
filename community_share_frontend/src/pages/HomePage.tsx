@@ -108,7 +108,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showCreateMenu, setShowCreateMenu] = useState(false);
   const [joinCode, setJoinCode] = useState("");
   const [newCommunity, setNewCommunity] = useState({ name: "", description: "", address: "" });
   const [error, setError] = useState("");
@@ -134,25 +134,41 @@ export default function HomePage() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const createType = params.get('create');
-    if (createType === 'item') {
-      setShowCreate(true);
-      // Clear the URL parameter
-      navigate(location.pathname, { replace: true });
-    } else if (createType === 'service') {
-      setShowCreate(true);
+    if (createType === 'item' || createType === 'service') {
+      // These are handled on the CommunityPage now
       // Clear the URL parameter
       navigate(location.pathname, { replace: true });
     }
   }, [location.search, navigate]);
 
-  const handleCreateItem = () => {
-    setShowCreateDialog(false);
-    setShowCreate(true);
+  const handleListItem = () => {
+    if (selectedCommunityId) {
+      navigate(`/communities/${selectedCommunityId}?add=item`);
+    } else {
+      alert("Please select a community first");
+    }
+    setShowCreateMenu(false);
   };
 
-  const handleCreateService = () => {
-    setShowCreateDialog(false);
-    setShowCreate(true);
+  const handlePostService = () => {
+    if (selectedCommunityId) {
+      navigate(`/communities/${selectedCommunityId}?add=service`);
+    } else {
+      alert("Please select a community first");
+    }
+    setShowCreateMenu(false);
+  };
+
+  const handleAskFavor = () => {
+    setShowCreateMenu(false);
+    setRequestType("item");
+    setShowRequestDialog(true);
+  };
+
+  const handleCommunityPost = () => {
+    setShowCreateMenu(false);
+    setRequestType("community");
+    setShowRequestDialog(true);
   };
   const [bookingForm, setBookingForm] = useState({ scheduled_date: "", message: "" });
   const [myReviews, setMyReviews] = useState<Review[]>([]);
@@ -475,50 +491,47 @@ export default function HomePage() {
             </DialogContent>
           </Dialog>
 
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4" /></Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>What would you like to create?</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-3">
-                <Button
-                  onClick={handleCreateItem}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700"
-                  size="lg"
+          <div className="relative inline-block">
+            <Button
+              size="sm"
+              className="bg-emerald-600 hover:bg-emerald-700"
+              onClick={() => setShowCreateMenu(!showCreateMenu)}
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+            {showCreateMenu && (
+              <div className="absolute right-0 top-10 w-56 bg-white rounded-lg shadow-lg border z-50 py-1">
+                <button
+                  onClick={handleListItem}
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm"
                 >
-                  <Package className="w-5 h-5 mr-2" />
-                  Item
-                </Button>
-                <Button
-                  onClick={handleCreateService}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                  size="lg"
+                  <Package className="w-4 h-4 text-emerald-600" />
+                  List an Item
+                </button>
+                <button
+                  onClick={handlePostService}
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm"
                 >
-                  <Wrench className="w-5 h-5 mr-2" />
-                  Service
-                </Button>
-                <Button
-                  onClick={() => { setShowCreateDialog(false); setRequestType("item"); setShowRequestDialog(true); }}
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                  size="lg"
+                  <Wrench className="w-4 h-4 text-blue-600" />
+                  Post a Service
+                </button>
+                <button
+                  onClick={handleAskFavor}
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm"
                 >
-                  <Send className="w-5 h-5 mr-2" />
+                  <Send className="w-4 h-4 text-purple-600" />
                   Ask a Favor
-                </Button>
-                <Button
-                  onClick={() => { setShowCreateDialog(false); setRequestType("community"); setShowRequestDialog(true); }}
-                  className="w-full bg-orange-600 hover:bg-orange-700"
-                  size="lg"
+                </button>
+                <button
+                  onClick={handleCommunityPost}
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm"
                 >
-                  <MessageSquare className="w-5 h-5 mr-2" />
+                  <MessageSquare className="w-4 h-4 text-orange-600" />
                   Community Post
-                </Button>
+                </button>
               </div>
-            </DialogContent>
-          </Dialog>
+            )}
+          </div>
 
           {user?.email === "kanwarsandhu@gmail.com" && (
             <Dialog open={showCreate} onOpenChange={setShowCreate}>

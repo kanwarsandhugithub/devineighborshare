@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -80,6 +80,7 @@ export default function CommunityPage() {
   const { id } = useParams<{ id: string }>();
   const communityId = Number(id);
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [community, setCommunity] = useState<Community | null>(null);
   const [items, setItems] = useState<Item[]>([]);
@@ -121,6 +122,20 @@ export default function CommunityPage() {
   useEffect(() => {
     loadData();
   }, [communityId]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const addType = params.get('add');
+    if (addType === 'item') {
+      setActiveTab('items');
+      setShowAddItem(true);
+      navigate(location.pathname, { replace: true });
+    } else if (addType === 'service') {
+      setActiveTab('services');
+      setShowAddService(true);
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.search, location.pathname, navigate]);
 
   const loadData = async () => {
     try {
