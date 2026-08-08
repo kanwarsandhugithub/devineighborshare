@@ -26,8 +26,8 @@ async def create_item(data: ItemCreate, current_user_id: int = Depends(get_curre
         if data.image_urls and len(data.image_urls) > 0:
             primary_image = data.image_urls[0]
         cursor = db.execute(
-            "INSERT INTO items (title, description, category, price_per_day, image_url, owner_id, community_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (data.title, data.description, data.category, data.price_per_day, primary_image, current_user_id, data.community_id),
+            "INSERT INTO items (title, description, category, price_per_day, price_unit, image_url, owner_id, community_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (data.title, data.description, data.category, data.price_per_day, data.price_unit, primary_image, current_user_id, data.community_id),
         )
         item_id = cursor.lastrowid
         # Save all images to item_images table
@@ -110,7 +110,7 @@ async def update_item(item_id: int, data: ItemUpdate, current_user_id: int = Dep
         if item["owner_id"] != current_user_id:
             raise HTTPException(status_code=403, detail="Not the owner")
         fields = {}
-        for field in ["title", "description", "category", "price_per_day", "image_url"]:
+        for field in ["title", "description", "category", "price_per_day", "price_unit", "image_url"]:
             val = getattr(data, field, None)
             if val is not None:
                 fields[field] = val
@@ -262,7 +262,7 @@ def _item_from_row(row, image_urls: list = None):
     d = dict(row)
     return ItemOut(
         id=d["id"], title=d["title"], description=d["description"],
-        category=d["category"], price_per_day=d["price_per_day"],
+        category=d["category"], price_per_day=d["price_per_day"], price_unit=d.get("price_unit", "per_day"),
         image_url=d["image_url"], image_urls=image_urls or [],
         is_available=bool(d["is_available"]),
         owner_id=d["owner_id"], community_id=d["community_id"],

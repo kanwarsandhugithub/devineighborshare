@@ -18,13 +18,13 @@ interface Review {
 
 interface Item {
   id: number; title: string; description: string; category: string;
-  price_per_day: number; image_url: string | null; image_urls: string[]; is_available: boolean;
+  price_per_day: number; price_unit: string; image_url: string | null; image_urls: string[]; is_available: boolean;
   owner_id: number; community_id: number; created_at?: string;
 }
 
 interface Service {
   id: number; title: string; description: string; category: string;
-  price: number; is_available: boolean; provider_id: number; community_id: number; created_at?: string;
+  price: number; price_unit: string; is_available: boolean; provider_id: number; community_id: number; created_at?: string;
 }
 
 export default function ProfilePage() {

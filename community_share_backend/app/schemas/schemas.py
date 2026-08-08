@@ -81,6 +81,7 @@ class ItemCreate(BaseModel):
     description: str = ""
     category: str = "other"
     price_per_day: float = 0
+    price_unit: str = "per_day"
     image_url: Optional[str] = None
     image_urls: Optional[List[str]] = None
     community_id: int
@@ -91,6 +92,7 @@ class ItemUpdate(BaseModel):
     description: Optional[str] = None
     category: Optional[str] = None
     price_per_day: Optional[float] = None
+    price_unit: Optional[str] = None
     image_url: Optional[str] = None
     image_urls: Optional[List[str]] = None
     is_available: Optional[bool] = None
@@ -102,6 +104,7 @@ class ItemOut(BaseModel):
     description: str
     category: str
     price_per_day: float
+    price_unit: str
     image_url: Optional[str] = None
     image_urls: List[str] = []
     is_available: bool
@@ -119,6 +122,7 @@ class ServiceCreate(BaseModel):
     description: str = ""
     category: str = "other"
     price: float = 0
+    price_unit: str = "per_service"
     community_id: int
 
 
@@ -127,6 +131,7 @@ class ServiceUpdate(BaseModel):
     description: Optional[str] = None
     category: Optional[str] = None
     price: Optional[float] = None
+    price_unit: Optional[str] = None
     is_available: Optional[bool] = None
 
 
@@ -136,6 +141,7 @@ class ServiceOut(BaseModel):
     description: str
     category: str
     price: float
+    price_unit: str
     is_available: bool
     provider_id: int
     community_id: int

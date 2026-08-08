@@ -22,8 +22,8 @@ async def create_service(data: ServiceCreate, current_user_id: int = Depends(get
     with get_db() as db:
         _check_membership(db, data.community_id, current_user_id)
         cursor = db.execute(
-            "INSERT INTO services (title, description, category, price, provider_id, community_id) VALUES (?, ?, ?, ?, ?, ?)",
-            (data.title, data.description, data.category, data.price, current_user_id, data.community_id),
+            "INSERT INTO services (title, description, category, price, price_unit, provider_id, community_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (data.title, data.description, data.category, data.price, data.price_unit, current_user_id, data.community_id),
         )
         row = db.execute(
             """SELECT s.*, u.full_name as provider_name FROM services s
@@ -88,7 +88,7 @@ async def update_service(service_id: int, data: ServiceUpdate, current_user_id: 
         if svc["provider_id"] != current_user_id:
             raise HTTPException(status_code=403, detail="Not the provider")
         fields = {}
-        for field in ["title", "description", "category", "price"]:
+        for field in ["title", "description", "category", "price", "price_unit"]:
             val = getattr(data, field, None)
             if val is not None:
                 fields[field] = val
@@ -211,7 +211,7 @@ def _service_from_row(row):
     d = dict(row)
     return ServiceOut(
         id=d["id"], title=d["title"], description=d["description"],
-        category=d["category"], price=d["price"],
+        category=d["category"], price=d["price"], price_unit=d.get("price_unit", "per_service"),
         is_available=bool(d["is_available"]),
         provider_id=d["provider_id"], community_id=d["community_id"],
         created_at=d["created_at"], provider_name=d["provider_name"],

@@ -29,6 +29,16 @@ def get_db():
 
 def init_db():
     with get_db() as db:
+        # Migration: add price_unit columns if missing
+        try:
+            db.execute("ALTER TABLE items ADD COLUMN price_unit TEXT DEFAULT 'per_day'")
+        except sqlite3.OperationalError:
+            pass
+        try:
+            db.execute("ALTER TABLE services ADD COLUMN price_unit TEXT DEFAULT 'per_service'")
+        except sqlite3.OperationalError:
+            pass
+
         db.executescript("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,6 +76,7 @@ def init_db():
             description TEXT DEFAULT '',
             category TEXT DEFAULT 'other',
             price_per_day REAL DEFAULT 0,
+            price_unit TEXT DEFAULT 'per_day',
             image_url TEXT,
             is_available INTEGER DEFAULT 1,
             owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -79,6 +90,7 @@ def init_db():
             description TEXT DEFAULT '',
             category TEXT DEFAULT 'other',
             price REAL DEFAULT 0,
+            price_unit TEXT DEFAULT 'per_service',
             is_available INTEGER DEFAULT 1,
             provider_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
             community_id INTEGER REFERENCES communities(id) ON DELETE CASCADE,

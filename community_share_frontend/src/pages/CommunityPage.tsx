@@ -14,13 +14,13 @@ import { ArrowLeft, Plus, Package, Wrench, MessageSquare, Send, ImagePlus, X, Ch
 
 interface Item {
   id: number; title: string; description: string; category: string;
-  price_per_day: number; image_url: string | null; image_urls: string[]; is_available: boolean; owner_id: number;
+  price_per_day: number; price_unit: string; image_url: string | null; image_urls: string[]; is_available: boolean; owner_id: number;
   owner_name: string; owner_avatar_url?: string; owner_avg_rating?: number; created_at: string;
 }
 
 interface Service {
   id: number; title: string; description: string; category: string;
-  price: number; is_available: boolean; provider_id: number;
+  price: number; price_unit: string; is_available: boolean; provider_id: number;
   provider_name: string; provider_avatar_url?: string; provider_avg_rating?: number; created_at: string;
 }
 

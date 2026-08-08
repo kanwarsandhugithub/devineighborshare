@@ -70,7 +70,7 @@ export const api = {
   getCommunityMembers: (id: number) => request(`/api/communities/${id}/members`),
 
   // Items
-  createItem: (data: { title: string; description: string; category: string; price_per_day: number; community_id: number; image_url?: string; image_urls?: string[] }) =>
+  createItem: (data: { title: string; description: string; category: string; price_per_day: number; price_unit: string; community_id: number; image_url?: string; image_urls?: string[] }) =>
     request("/api/items/", { method: "POST", body: JSON.stringify(data) }),
   getCommunityItems: (communityId: number, category?: string, search?: string) => {
     const params = new URLSearchParams();
@@ -93,7 +93,7 @@ export const api = {
     request(`/api/items/rentals/${id}`, { method: "PUT", body: JSON.stringify({ status }) }),
 
   // Services
-  createService: (data: { title: string; description: string; category: string; price: number; community_id: number }) =>
+  createService: (data: { title: string; description: string; category: string; price: number; price_unit: string; community_id: number }) =>
     request("/api/services/", { method: "POST", body: JSON.stringify(data) }),
   getCommunityServices: (communityId: number, category?: string, search?: string) => {
     const params = new URLSearchParams();
