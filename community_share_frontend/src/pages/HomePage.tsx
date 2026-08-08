@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, DollarSign, ArrowRight, ChevronRight, ChevronLeft, Send, MessageSquare, Star, Search, X, Shield } from "lucide-react";
+import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, ArrowRight, ChevronRight, ChevronLeft, Send, MessageSquare, Star, Search, X, Shield } from "lucide-react";
 
 const ITEM_CATEGORIES = ["tools", "electronics", "outdoor", "kitchen", "sports", "other"];
 const SERVICE_CATEGORIES = ["transportation", "handyman", "cleaning", "tutoring", "pet care", "other"];
@@ -79,27 +79,6 @@ function StarRating({ rating, onRate }: { rating: number; onRate?: (r: number) =
   );
 }
 
-function ItemImageGallery({ images, title }: { images: string[]; title: string }) {
-  const [current, setCurrent] = useState(0);
-  if (images.length === 0) return null;
-  if (images.length === 1) {
-    return <img src={images[0]} alt={title} className="w-full h-32 object-cover rounded-lg mb-2" />;
-  }
-  return (
-    <div className="relative mb-2">
-      <img src={images[current]} alt={`${title} ${current + 1}`} className="w-full h-32 object-cover rounded-lg" />
-      <button type="button" onClick={(e) => { e.stopPropagation(); setCurrent((p) => (p - 1 + images.length) % images.length); }}
-        className="absolute left-1 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-black/70">
-        <ChevronLeft className="w-3 h-3" />
-      </button>
-      <button type="button" onClick={(e) => { e.stopPropagation(); setCurrent((p) => (p + 1) % images.length); }}
-        className="absolute right-1 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-black/70">
-        <ChevronRight className="w-3 h-3" />
-      </button>
-    </div>
-  );
-}
-
 export default function HomePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -126,8 +105,8 @@ export default function HomePage() {
   const [showBookDialog, setShowBookDialog] = useState(false);
   const [showWaiverDialog, setShowWaiverDialog] = useState(false);
   const [waiverType, setWaiverType] = useState<"rental" | "booking" | null>(null);
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedItem] = useState<Item | null>(null);
+  const [selectedService] = useState<Service | null>(null);
   const [rentalForm, setRentalForm] = useState({ start_date: "", end_date: "", message: "" });
 
   // Handle URL parameters for create dialogs
@@ -183,12 +162,12 @@ export default function HomePage() {
 
   // Edit item state
   const [showEditItem, setShowEditItem] = useState(false);
-  const [editItem, setEditItem] = useState<Item | null>(null);
+  const [editItem] = useState<Item | null>(null);
   const [editItemForm, setEditItemForm] = useState({ title: "", description: "", category: "", price_per_day: 0 });
 
   // Edit service state
   const [showEditService, setShowEditService] = useState(false);
-  const [editService, setEditService] = useState<Service | null>(null);
+  const [editService] = useState<Service | null>(null);
   const [editServiceForm, setEditServiceForm] = useState({ title: "", description: "", category: "", price: 0 });
   const [showRequestDialog, setShowRequestDialog] = useState(false);
   const [requestType, setRequestType] = useState<"item" | "service" | "community" | null>(null);
