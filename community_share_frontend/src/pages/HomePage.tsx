@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, DollarSign, ArrowRight, ChevronRight, ChevronLeft, Send, Star, Search, X, Shield, Pencil } from "lucide-react";
+import { Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, DollarSign, ArrowRight, ChevronRight, ChevronLeft, Send, Star, Search, X, Shield, Pencil } from "lucide-react";
 
 const ITEM_CATEGORIES = ["tools", "electronics", "outdoor", "kitchen", "sports", "other"];
 const SERVICE_CATEGORIES = ["transportation", "handyman", "cleaning", "tutoring", "pet care", "other"];
@@ -108,6 +108,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [joinCode, setJoinCode] = useState("");
   const [newCommunity, setNewCommunity] = useState({ name: "", description: "", address: "" });
   const [error, setError] = useState("");
@@ -143,6 +144,16 @@ export default function HomePage() {
       navigate(location.pathname, { replace: true });
     }
   }, [location.search, navigate]);
+
+  const handleCreateItem = () => {
+    setShowCreateDialog(false);
+    setShowCreate(true);
+  };
+
+  const handleCreateService = () => {
+    setShowCreateDialog(false);
+    setShowCreate(true);
+  };
   const [bookingForm, setBookingForm] = useState({ scheduled_date: "", message: "" });
   const [myReviews, setMyReviews] = useState<Review[]>([]);
   const [showRatingDialog, setShowRatingDialog] = useState(false);
@@ -450,6 +461,35 @@ export default function HomePage() {
                 </div>
                 <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700">Join Community</Button>
               </form>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-1" /> Create</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>What would you like to create?</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <Button
+                  onClick={handleCreateItem}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  size="lg"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  List an Item
+                </Button>
+                <Button
+                  onClick={handleCreateService}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  size="lg"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Offer a Service
+                </Button>
+              </div>
             </DialogContent>
           </Dialog>
 
