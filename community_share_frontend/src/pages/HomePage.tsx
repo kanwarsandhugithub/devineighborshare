@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, DollarSign, ArrowRight, ChevronRight, ChevronLeft, Send, MessageSquare, Star, Search, X, Shield, Pencil } from "lucide-react";
+import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, DollarSign, ArrowRight, ChevronRight, ChevronLeft, Send, MessageSquare, Star, Search, X, Shield } from "lucide-react";
 
 const ITEM_CATEGORIES = ["tools", "electronics", "outdoor", "kitchen", "sports", "other"];
 const SERVICE_CATEGORIES = ["transportation", "handyman", "cleaning", "tutoring", "pet care", "other"];
@@ -308,10 +308,6 @@ export default function HomePage() {
     }
   };
 
-  const handleMessage = (userId: number) => {
-    navigate(`/messages/${userId}`);
-  };
-
   const handleUpdateRental = async (id: number, status: string) => {
     try {
       await api.updateRental(id, status);
@@ -353,12 +349,6 @@ export default function HomePage() {
     }
   };
 
-  const openEditItem = (item: Item) => {
-    setEditItem(item);
-    setEditItemForm({ title: item.title, description: item.description, category: item.category, price_per_day: item.price_per_day });
-    setShowEditItem(true);
-  };
-
   const handleEditItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editItem) return;
@@ -369,12 +359,6 @@ export default function HomePage() {
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to update item");
     }
-  };
-
-  const openEditService = (svc: Service) => {
-    setEditService(svc);
-    setEditServiceForm({ title: svc.title, description: svc.description, category: svc.category, price: svc.price });
-    setShowEditService(true);
   };
 
   const handleEditService = async (e: React.FormEvent) => {
@@ -443,6 +427,9 @@ export default function HomePage() {
     svc.category.toLowerCase().includes(q) || 
     (svc.provider_name && svc.provider_name.toLowerCase().includes(q))
   ) : services;
+  // Sort by popularity (owner/provider rating) descending and take top 9
+  const popularItems = [...filteredItems].sort((a, b) => (b.owner_avg_rating || 0) - (a.owner_avg_rating || 0)).slice(0, 9);
+  const popularServices = [...filteredServices].sort((a, b) => (b.provider_avg_rating || 0) - (a.provider_avg_rating || 0)).slice(0, 9);
   const primaryCommunity = communities.find((c) => c.id === selectedCommunityId) || (communities.length > 0 ? communities[0] : null);
 
   return (
@@ -627,61 +614,34 @@ export default function HomePage() {
                 </Button>
               </div>
             </div>
-            {filteredItems.length === 0 ? (
+            {popularItems.length === 0 ? (
               <Card><CardContent className="py-4 text-center text-gray-400 text-sm">{q ? "No items match your search" : "No items listed yet"}</CardContent></Card>
             ) : (
-              <div className="space-y-2">
-                {filteredItems.slice(0, q ? 20 : 4).map((item) => (
-                  <Card key={item.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-3">
-                      {item.image_urls && item.image_urls.length > 0 ? (
-                        <ItemImageGallery images={item.image_urls} title={item.title} />
-                      ) : item.image_url ? (
-                        <img src={item.image_url} alt={item.title} className="w-full h-32 object-cover rounded-lg mb-2" />
-                      ) : null}
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <h3 className="font-semibold text-sm">{item.title}</h3>
-                            <Badge variant={item.is_available ? "default" : "secondary"} className={item.is_available ? "bg-emerald-100 text-emerald-700 text-xs" : "text-xs"}>
-                              {item.is_available ? "Available" : "Rented"}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-gray-500 line-clamp-1">{item.description}</p>
-                          <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
-                            <Badge variant="outline" className="text-xs">{item.category}</Badge>
-                            <span className="flex items-center gap-0.5"><DollarSign className="w-3 h-3" />{item.price_per_day}/day</span>
-                            <span className="inline-flex items-center gap-1">
-                              {item.owner_avatar_url ? (
-                                <img src={item.owner_avatar_url} alt={item.owner_name} className="w-4 h-4 rounded-full object-cover" />
-                              ) : (
-                                <span className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-gray-500" style={{fontSize: '0.5rem'}}>{item.owner_name?.charAt(0)?.toUpperCase()}</span>
-                              )}
-                              {item.owner_name}
-                              {item.owner_avg_rating != null && (
-                                <span className="text-amber-600 inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{item.owner_avg_rating}</span>
-                              )}
-                            </span>
-                          </div>
+              <div className="grid grid-cols-3 gap-2">
+                {popularItems.map((item) => (
+                  <Card 
+                    key={item.id} 
+                    className="hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => navigate(`/community/${selectedCommunityId}`)}
+                  >
+                    <CardContent className="p-2">
+                      {item.image_url ? (
+                        <img src={item.image_url} alt={item.title} className="w-full h-20 object-cover rounded-lg mb-1" />
+                      ) : (
+                        <div className="w-full h-20 bg-gray-100 rounded-lg mb-1 flex items-center justify-center text-gray-400">
+                          <Package className="w-6 h-6" />
                         </div>
-                        <div className="flex gap-1 ml-2">
-                          {item.owner_id === user?.id && (
-                            <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => openEditItem(item)} title="Edit item">
-                              <Pencil className="w-3 h-3" />
-                            </Button>
-                          )}
-                          {item.owner_id !== user?.id && item.is_available && (
-                            <>
-                              <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => handleMessage(item.owner_id)}>
-                                <Send className="w-3 h-3" />
-                              </Button>
-                              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-xs h-7" onClick={() => { setSelectedItem(item); setShowRentDialog(true); }}>
-                                Rent
-                              </Button>
-                            </>
-                          )}
-                        </div>
+                      )}
+                      <h3 className="font-semibold text-xs line-clamp-1" title={item.title}>{item.title}</h3>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-xs text-emerald-600 font-medium">${item.price_per_day}</span>
+                        {item.owner_avg_rating != null && (
+                          <span className="text-amber-600 text-xs inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{item.owner_avg_rating}</span>
+                        )}
                       </div>
+                      <Badge variant={item.is_available ? "default" : "secondary"} className={item.is_available ? "bg-emerald-100 text-emerald-700 text-[10px] mt-1 w-full justify-center" : "text-[10px] mt-1 w-full justify-center"}>
+                        {item.is_available ? "Available" : "Rented"}
+                      </Badge>
                     </CardContent>
                   </Card>
                 ))}
@@ -706,56 +666,30 @@ export default function HomePage() {
                 </Button>
               </div>
             </div>
-            {filteredServices.length === 0 ? (
+            {popularServices.length === 0 ? (
               <Card><CardContent className="py-4 text-center text-gray-400 text-sm">{q ? "No services match your search" : "No services offered yet"}</CardContent></Card>
             ) : (
-              <div className="space-y-2">
-                {filteredServices.slice(0, q ? 20 : 4).map((svc) => (
-                  <Card key={svc.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-3">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <h3 className="font-semibold text-sm">{svc.title}</h3>
-                            <Badge variant={svc.is_available ? "default" : "secondary"} className={svc.is_available ? "bg-blue-100 text-blue-700 text-xs" : "text-xs"}>
-                              {svc.is_available ? "Available" : "Booked"}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-gray-500 line-clamp-1">{svc.description}</p>
-                          <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
-                            <Badge variant="outline" className="text-xs">{svc.category}</Badge>
-                            <span className="flex items-center gap-0.5"><DollarSign className="w-3 h-3" />${svc.price}</span>
-                            <span className="inline-flex items-center gap-1">
-                              {svc.provider_avatar_url ? (
-                                <img src={svc.provider_avatar_url} alt={svc.provider_name} className="w-4 h-4 rounded-full object-cover" />
-                              ) : (
-                                <span className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-gray-500" style={{fontSize: '0.5rem'}}>{svc.provider_name?.charAt(0)?.toUpperCase()}</span>
-                              )}
-                              {svc.provider_name}
-                              {svc.provider_avg_rating != null && (
-                                <span className="text-amber-600 inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{svc.provider_avg_rating}</span>
-                              )}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex gap-1 ml-2">
-                          {svc.provider_id === user?.id && (
-                            <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => openEditService(svc)} title="Edit service">
-                              <Pencil className="w-3 h-3" />
-                            </Button>
-                          )}
-                          {svc.provider_id !== user?.id && svc.is_available && (
-                            <>
-                              <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => handleMessage(svc.provider_id)}>
-                                <Send className="w-3 h-3" />
-                              </Button>
-                              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-xs h-7" onClick={() => { setSelectedService(svc); setShowBookDialog(true); }}>
-                                Book
-                              </Button>
-                            </>
-                          )}
-                        </div>
+              <div className="grid grid-cols-3 gap-2">
+                {popularServices.map((svc) => (
+                  <Card 
+                    key={svc.id} 
+                    className="hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => navigate(`/community/${selectedCommunityId}`)}
+                  >
+                    <CardContent className="p-2">
+                      <div className="w-full h-20 bg-blue-50 rounded-lg mb-1 flex items-center justify-center text-blue-400">
+                        <Wrench className="w-6 h-6" />
                       </div>
+                      <h3 className="font-semibold text-xs line-clamp-1" title={svc.title}>{svc.title}</h3>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-xs text-blue-600 font-medium">${svc.price}</span>
+                        {svc.provider_avg_rating != null && (
+                          <span className="text-amber-600 text-xs inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{svc.provider_avg_rating}</span>
+                        )}
+                      </div>
+                      <Badge variant={svc.is_available ? "default" : "secondary"} className={svc.is_available ? "bg-blue-100 text-blue-700 text-[10px] mt-1 w-full justify-center" : "text-[10px] mt-1 w-full justify-center"}>
+                        {svc.is_available ? "Available" : "Booked"}
+                      </Badge>
                     </CardContent>
                   </Card>
                 ))}
