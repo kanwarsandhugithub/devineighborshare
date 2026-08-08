@@ -1,9 +1,6 @@
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import { Home, MessageSquare, User, ClipboardList, Shield } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useState } from "react";
 
 export default function Layout() {
   const navigate = useNavigate();
