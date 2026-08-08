@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -103,6 +103,7 @@ function ItemImageGallery({ images, title }: { images: string[]; title: string }
 export default function HomePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -127,6 +128,21 @@ export default function HomePage() {
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [rentalForm, setRentalForm] = useState({ start_date: "", end_date: "", message: "" });
+
+  // Handle URL parameters for create dialogs
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const createType = params.get('create');
+    if (createType === 'item') {
+      setShowCreate(true);
+      // Clear the URL parameter
+      navigate(location.pathname, { replace: true });
+    } else if (createType === 'service') {
+      setShowCreate(true);
+      // Clear the URL parameter
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.search, navigate]);
   const [bookingForm, setBookingForm] = useState({ scheduled_date: "", message: "" });
   const [myReviews, setMyReviews] = useState<Review[]>([]);
   const [showRatingDialog, setShowRatingDialog] = useState(false);

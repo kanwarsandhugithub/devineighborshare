@@ -1,11 +1,15 @@
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
-import { Home, MessageSquare, User, ClipboardList, Shield } from "lucide-react";
+import { Home, MessageSquare, User, ClipboardList, Shield, Plus } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState } from "react";
 
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const tabs = [
     { path: "/", icon: Home, label: "Home" },
@@ -21,6 +25,16 @@ export default function Layout() {
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
     return location.pathname.startsWith(path);
+  };
+
+  const handleCreateItem = () => {
+    setShowCreateDialog(false);
+    navigate("/?create=item");
+  };
+
+  const handleCreateService = () => {
+    setShowCreateDialog(false);
+    navigate("/?create=service");
   };
 
   return (
@@ -57,6 +71,41 @@ export default function Layout() {
           </button>
         ))}
       </nav>
+      
+      {/* Floating Action Button for creating items/services */}
+      <button
+        onClick={() => setShowCreateDialog(true)}
+        className="fixed bottom-20 right-4 bg-emerald-600 hover:bg-emerald-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-105"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
+
+      {/* Create Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>What would you like to create?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Button
+              onClick={handleCreateItem}
+              className="w-full bg-emerald-600 hover:bg-emerald-700"
+              size="lg"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              List an Item
+            </Button>
+            <Button
+              onClick={handleCreateService}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              size="lg"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Offer a Service
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
