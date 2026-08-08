@@ -38,6 +38,18 @@ interface Community {
 const ITEM_CATEGORIES = ["tools", "electronics", "outdoor", "kitchen", "sports", "other"];
 const SERVICE_CATEGORIES = ["transportation", "handyman", "cleaning", "tutoring", "pet care", "other"];
 const DISCUSSION_CATEGORIES = ["general", "events", "announcements", "questions", "marketplace"];
+const PRICE_UNITS = ["per_day", "per_month", "per_24_hours", "flat_fee"];
+
+function formatPrice(price: number, unit: string) {
+  const labels: Record<string, string> = {
+    per_day: "/day",
+    per_month: "/month",
+    per_24_hours: "/24 hrs",
+    flat_fee: "",
+    per_service: "",
+  };
+  return `$${price}${labels[unit] || ""}`;
+}
 
 function ItemImageGallery({ images, title }: { images: string[]; title: string }) {
   const [current, setCurrent] = useState(0);
@@ -99,19 +111,19 @@ export default function CommunityPage() {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [showItemDetail, setShowItemDetail] = useState(false);
   const [showServiceDetail, setShowServiceDetail] = useState(false);
-  const [editItem, setEditItem] = useState({ title: "", description: "", category: "tools", price_per_day: 0 });
+  const [editItem, setEditItem] = useState({ title: "", description: "", category: "tools", price_per_day: 0, price_unit: "per_day" });
   const [editExistingImageUrls, setEditExistingImageUrls] = useState<string[]>([]);
   const [editNewImageFiles, setEditNewImageFiles] = useState<File[]>([]);
   const [editNewImagePreviews, setEditNewImagePreviews] = useState<string[]>([]);
   const [showEditService, setShowEditService] = useState(false);
-  const [editServiceForm, setEditServiceForm] = useState({ title: "", description: "", category: "transportation", price: 0 });
+  const [editServiceForm, setEditServiceForm] = useState({ title: "", description: "", category: "transportation", price: 0, price_unit: "per_service" });
   const [editServiceId, setEditServiceId] = useState<number | null>(null);
 
   // Form states
-  const [newItem, setNewItem] = useState({ title: "", description: "", category: "tools", price_per_day: 0 });
+  const [newItem, setNewItem] = useState({ title: "", description: "", category: "tools", price_per_day: 0, price_unit: "per_day" });
   const [itemImageFiles, setItemImageFiles] = useState<File[]>([]);
   const [itemImagePreviews, setItemImagePreviews] = useState<string[]>([]);
-  const [newService, setNewService] = useState({ title: "", description: "", category: "transportation", price: 0 });
+  const [newService, setNewService] = useState({ title: "", description: "", category: "transportation", price: 0, price_unit: "per_service" });
   const [newDiscussion, setNewDiscussion] = useState({ title: "", content: "", category: "general" });
   const [rentalForm, setRentalForm] = useState({ start_date: "", end_date: "", message: "" });
   const [bookingForm, setBookingForm] = useState({ scheduled_date: "", message: "" });
@@ -191,7 +203,7 @@ export default function CommunityPage() {
       }
       await api.createItem({ ...newItem, community_id: communityId, image_urls: image_urls.length > 0 ? image_urls : undefined });
       setShowAddItem(false);
-      setNewItem({ title: "", description: "", category: "tools", price_per_day: 0 });
+      setNewItem({ title: "", description: "", category: "tools", price_per_day: 0, price_unit: "per_day" });
       setItemImageFiles([]);
       setItemImagePreviews([]);
       loadData();
@@ -206,7 +218,7 @@ export default function CommunityPage() {
     try {
       await api.createService({ ...newService, community_id: communityId });
       setShowAddService(false);
-      setNewService({ title: "", description: "", category: "transportation", price: 0 });
+      setNewService({ title: "", description: "", category: "transportation", price: 0, price_unit: "per_service" });
       loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed");
@@ -369,7 +381,7 @@ export default function CommunityPage() {
                     <Label>Description</Label>
                     <Textarea value={newItem.description} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} placeholder="24ft aluminum ladder, great condition" />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label>Category</Label>
                       <select className="w-full border rounded-md p-2 text-sm" value={newItem.category} onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}>
@@ -377,8 +389,14 @@ export default function CommunityPage() {
                       </select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Price / Day ($)</Label>
+                      <Label>Price ($)</Label>
                       <Input type="number" min="0" step="0.01" value={newItem.price_per_day} onChange={(e) => setNewItem({ ...newItem, price_per_day: Number(e.target.value) })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Unit</Label>
+                      <select className="w-full border rounded-md p-2 text-sm" value={newItem.price_unit} onChange={(e) => setNewItem({ ...newItem, price_unit: e.target.value })}>
+                        {PRICE_UNITS.map((u) => <option key={u} value={u}>{u.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>)}
+                      </select>
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -452,7 +470,7 @@ export default function CommunityPage() {
                     </div>
                     <div className="absolute bottom-2 right-2">
                       <Badge className="bg-black/60 text-white hover:bg-black/60 text-[10px] font-medium px-1.5 py-0.5">
-                        ${item.price_per_day}
+                        {formatPrice(item.price_per_day, item.price_unit)}
                       </Badge>
                     </div>
                   </div>
@@ -497,7 +515,7 @@ export default function CommunityPage() {
                     <Label>Description</Label>
                     <Textarea value={newService.description} onChange={(e) => setNewService({ ...newService, description: e.target.value })} placeholder="Comfortable SUV ride to/from the airport" />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label>Category</Label>
                       <select className="w-full border rounded-md p-2 text-sm" value={newService.category} onChange={(e) => setNewService({ ...newService, category: e.target.value })}>
@@ -507,6 +525,12 @@ export default function CommunityPage() {
                     <div className="space-y-2">
                       <Label>Price ($)</Label>
                       <Input type="number" min="0" step="0.01" value={newService.price} onChange={(e) => setNewService({ ...newService, price: Number(e.target.value) })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Unit</Label>
+                      <select className="w-full border rounded-md p-2 text-sm" value={newService.price_unit} onChange={(e) => setNewService({ ...newService, price_unit: e.target.value })}>
+                        {PRICE_UNITS.map((u) => <option key={u} value={u}>{u.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>)}
+                      </select>
                     </div>
                   </div>
                   <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700">Offer Service</Button>
@@ -552,7 +576,7 @@ export default function CommunityPage() {
                     </div>
                     <div className="absolute bottom-2 right-2">
                       <Badge className="bg-black/60 text-white hover:bg-black/60 text-[10px] font-medium px-1.5 py-0.5">
-                        ${svc.price}
+                        {formatPrice(svc.price, svc.price_unit)}
                       </Badge>
                     </div>
                   </div>
@@ -667,7 +691,7 @@ export default function CommunityPage() {
                     {selectedItem.is_available ? "Available" : "Unavailable"}
                   </Badge>
                 </div>
-                <p className="text-2xl font-bold text-emerald-600">${selectedItem.price_per_day}<span className="text-sm text-gray-400 font-normal">/day</span></p>
+                <p className="text-2xl font-bold text-emerald-600">{formatPrice(selectedItem.price_per_day, selectedItem.price_unit)}</p>
               </div>
               <p className="text-sm text-gray-600">{selectedItem.description}</p>
               <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -684,7 +708,7 @@ export default function CommunityPage() {
               <div className="flex gap-2">
                 {selectedItem.owner_id === user?.id ? (
                   <>
-                    <Button variant="outline" className="flex-1" onClick={() => { setShowItemDetail(false); setEditItem({ title: selectedItem.title, description: selectedItem.description, category: selectedItem.category, price_per_day: selectedItem.price_per_day }); setEditExistingImageUrls(selectedItem.image_urls || []); setShowEditItem(true); }}>
+                    <Button variant="outline" className="flex-1" onClick={() => { setShowItemDetail(false); setEditItem({ title: selectedItem.title, description: selectedItem.description, category: selectedItem.category, price_per_day: selectedItem.price_per_day, price_unit: selectedItem.price_unit || "per_day" }); setEditExistingImageUrls(selectedItem.image_urls || []); setShowEditItem(true); }}>>
                       <Edit className="w-4 h-4 mr-1" /> Edit
                     </Button>
                     <Button variant="outline" className="flex-1 text-red-600 border-red-200 hover:bg-red-50" onClick={() => { setShowItemDetail(false); handleDeleteItem(selectedItem.id); }}>
@@ -720,7 +744,7 @@ export default function CommunityPage() {
                     {selectedService.is_available ? "Available" : "Unavailable"}
                   </Badge>
                 </div>
-                <p className="text-2xl font-bold text-blue-600">${selectedService.price}</p>
+                <p className="text-2xl font-bold text-blue-600">{formatPrice(selectedService.price, selectedService.price_unit)}</p>
               </div>
               <p className="text-sm text-gray-600">{selectedService.description}</p>
               <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -737,7 +761,7 @@ export default function CommunityPage() {
               <div className="flex gap-2">
                 {selectedService.provider_id === user?.id ? (
                   <>
-                    <Button variant="outline" className="flex-1" onClick={() => { setShowServiceDetail(false); setEditServiceForm({ title: selectedService.title, description: selectedService.description, category: selectedService.category, price: selectedService.price }); setEditServiceId(selectedService.id); setShowEditService(true); }}>
+                    <Button variant="outline" className="flex-1" onClick={() => { setShowServiceDetail(false); setEditServiceForm({ title: selectedService.title, description: selectedService.description, category: selectedService.category, price: selectedService.price, price_unit: selectedService.price_unit || "per_service" }); setEditServiceId(selectedService.id); setShowEditService(true); }}>>
                       <Edit className="w-4 h-4 mr-1" /> Edit
                     </Button>
                     <Button variant="outline" className="flex-1 text-red-600 border-red-200 hover:bg-red-50" onClick={() => { setShowServiceDetail(false); handleDeleteService(selectedService.id); }}>
@@ -798,7 +822,7 @@ export default function CommunityPage() {
               <Label>Description</Label>
               <Textarea value={editItem.description} onChange={(e) => setEditItem({ ...editItem, description: e.target.value })} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Category</Label>
                 <select className="w-full border rounded-md p-2 text-sm" value={editItem.category} onChange={(e) => setEditItem({ ...editItem, category: e.target.value })}>
@@ -806,8 +830,14 @@ export default function CommunityPage() {
                 </select>
               </div>
               <div className="space-y-2">
-                <Label>Price / Day ($)</Label>
+                <Label>Price ($)</Label>
                 <Input type="number" min="0" step="0.01" value={editItem.price_per_day} onChange={(e) => setEditItem({ ...editItem, price_per_day: Number(e.target.value) })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Unit</Label>
+                <select className="w-full border rounded-md p-2 text-sm" value={editItem.price_unit} onChange={(e) => setEditItem({ ...editItem, price_unit: e.target.value })}>
+                  {PRICE_UNITS.map((u) => <option key={u} value={u}>{u.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>)}
+                </select>
               </div>
             </div>
             <div className="space-y-2">
@@ -859,7 +889,7 @@ export default function CommunityPage() {
               <Label>Description</Label>
               <Textarea value={editServiceForm.description} onChange={(e) => setEditServiceForm({ ...editServiceForm, description: e.target.value })} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Category</Label>
                 <select className="w-full border rounded-md p-2 text-sm" value={editServiceForm.category} onChange={(e) => setEditServiceForm({ ...editServiceForm, category: e.target.value })}>
@@ -869,6 +899,12 @@ export default function CommunityPage() {
               <div className="space-y-2">
                 <Label>Price ($)</Label>
                 <Input type="number" min="0" step="0.01" value={editServiceForm.price} onChange={(e) => setEditServiceForm({ ...editServiceForm, price: Number(e.target.value) })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Unit</Label>
+                <select className="w-full border rounded-md p-2 text-sm" value={editServiceForm.price_unit} onChange={(e) => setEditServiceForm({ ...editServiceForm, price_unit: e.target.value })}>
+                  {PRICE_UNITS.map((u) => <option key={u} value={u}>{u.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>)}
+                </select>
               </div>
             </div>
             <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">Save Changes</Button>

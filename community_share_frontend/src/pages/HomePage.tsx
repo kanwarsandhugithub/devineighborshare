@@ -14,6 +14,17 @@ import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, Rotat
 const ITEM_CATEGORIES = ["tools", "electronics", "outdoor", "kitchen", "sports", "other"];
 const SERVICE_CATEGORIES = ["transportation", "handyman", "cleaning", "tutoring", "pet care", "other"];
 
+function formatPrice(price: number, unit: string) {
+  const labels: Record<string, string> = {
+    per_day: "/day",
+    per_month: "/month",
+    per_24_hours: "/24 hrs",
+    flat_fee: "",
+    per_service: "",
+  };
+  return `$${price}${labels[unit] || ""}`;
+}
+
 interface Community {
   id: number; name: string; description: string; address: string;
   join_code: string; member_count: number;
@@ -623,7 +634,7 @@ export default function HomePage() {
                       </div>
                       <div className="absolute bottom-2 right-2">
                         <Badge className="bg-black/60 text-white hover:bg-black/60 text-[10px] font-medium px-1.5 py-0.5">
-                          ${item.price_per_day}
+                          {formatPrice(item.price_per_day, item.price_unit)}
                         </Badge>
                       </div>
                     </div>
@@ -696,7 +707,7 @@ export default function HomePage() {
                       </div>
                       <div className="absolute bottom-2 right-2">
                         <Badge className="bg-black/60 text-white hover:bg-black/60 text-[10px] font-medium px-1.5 py-0.5">
-                          ${svc.price}
+                          {formatPrice(svc.price, svc.price_unit)}
                         </Badge>
                       </div>
                     </div>
