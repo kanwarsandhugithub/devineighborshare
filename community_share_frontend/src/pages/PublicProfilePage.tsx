@@ -14,6 +14,7 @@ interface User {
   phone: string | null;
   avatar_url: string | null;
   bio: string;
+  unit: string;
   avg_rating: number | null;
 }
 
@@ -104,6 +105,7 @@ export default function PublicProfilePage() {
 
           <div className="space-y-2 text-sm text-gray-600">
             {user.phone && <p><span className="text-gray-400">Phone:</span> {user.phone}</p>}
+            {user.unit && <p><span className="text-gray-400">Unit:</span> {user.unit}</p>}
             {user.bio && <p><span className="text-gray-400">Bio:</span> {user.bio}</p>}
           </div>
         </CardContent>

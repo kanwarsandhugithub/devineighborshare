@@ -53,7 +53,7 @@ export const api = {
 
   // Users
   getUser: (id: number) => request(`/api/users/${id}`),
-  updateProfile: (data: { full_name?: string; phone?: string; bio?: string; avatar_url?: string }) =>
+  updateProfile: (data: { full_name?: string; phone?: string; bio?: string; unit?: string; avatar_url?: string }) =>
     request("/api/users/me", { method: "PUT", body: JSON.stringify(data) }),
 
   // Communities

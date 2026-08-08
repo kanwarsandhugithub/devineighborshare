@@ -38,6 +38,10 @@ def init_db():
             db.execute("ALTER TABLE services ADD COLUMN price_unit TEXT DEFAULT 'per_service'")
         except sqlite3.OperationalError:
             pass
+        try:
+            db.execute("ALTER TABLE users ADD COLUMN unit TEXT DEFAULT ''")
+        except sqlite3.OperationalError:
+            pass
 
         db.executescript("""
         CREATE TABLE IF NOT EXISTS users (
@@ -48,6 +52,7 @@ def init_db():
             phone TEXT,
             avatar_url TEXT,
             bio TEXT DEFAULT '',
+            unit TEXT DEFAULT '',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 

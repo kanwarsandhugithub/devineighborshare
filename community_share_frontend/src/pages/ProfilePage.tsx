@@ -33,7 +33,7 @@ export default function ProfilePage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [services, setServices] = useState<Service[]>([]);
-  const [form, setForm] = useState({ full_name: "", phone: "", bio: "" });
+  const [form, setForm] = useState({ full_name: "", phone: "", bio: "", unit: "" });
   const [uploading, setUploading] = useState(false);
   
   // Edit item state
@@ -48,7 +48,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      setForm({ full_name: user.full_name, phone: user.phone || "", bio: user.bio || "" });
+      setForm({ full_name: user.full_name, phone: user.phone || "", bio: user.bio || "", unit: user.unit || "" });
       api.getUserReviews(user.id).then(setReviews).catch(() => {});
       // Load user's items and services
       api.getMyItems().then(setItems).catch((e) => console.error("Failed to load items:", e));
@@ -211,6 +211,10 @@ export default function ProfilePage() {
                 <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="555-0123" />
               </div>
               <div className="space-y-2">
+                <Label>Unit / Apartment</Label>
+                <Input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} placeholder="Apt 4B" />
+              </div>
+              <div className="space-y-2">
                 <Label>Bio</Label>
                 <Textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Tell your neighbors about yourself" rows={3} />
               </div>
@@ -222,6 +226,7 @@ export default function ProfilePage() {
           ) : (
             <div className="space-y-2 text-sm text-gray-600">
               {user.phone && <p><span className="text-gray-400">Phone:</span> {user.phone}</p>}
+              {user.unit && <p><span className="text-gray-400">Unit:</span> {user.unit}</p>}
               {user.bio && <p><span className="text-gray-400">Bio:</span> {user.bio}</p>}
             </div>
           )}

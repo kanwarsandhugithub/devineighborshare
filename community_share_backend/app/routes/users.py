@@ -20,6 +20,7 @@ async def get_user(user_id: int):
         phone=row["phone"],
         avatar_url=row["avatar_url"],
         bio=row["bio"],
+        unit=row.get("unit", ""),
         created_at=row["created_at"],
         avg_rating=round(avg["avg_rating"], 1) if avg["avg_rating"] else None,
     )
@@ -38,6 +39,8 @@ async def update_profile(update: UserUpdate, current_user_id: int = Depends(get_
             fields["phone"] = update.phone
         if update.bio is not None:
             fields["bio"] = update.bio
+        if update.unit is not None:
+            fields["unit"] = update.unit
         if update.avatar_url is not None:
             fields["avatar_url"] = update.avatar_url
         if fields:
@@ -53,6 +56,7 @@ async def update_profile(update: UserUpdate, current_user_id: int = Depends(get_
         phone=updated["phone"],
         avatar_url=updated["avatar_url"],
         bio=updated["bio"],
+        unit=updated.get("unit", ""),
         created_at=updated["created_at"],
         avg_rating=round(avg["avg_rating"], 1) if avg["avg_rating"] else None,
     )

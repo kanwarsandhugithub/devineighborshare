@@ -37,6 +37,7 @@ class UserOut(BaseModel):
     phone: Optional[str] = None
     avatar_url: Optional[str] = None
     bio: str = ""
+    unit: str = ""
     created_at: Optional[str] = None
     avg_rating: Optional[float] = None
     is_super_admin: bool = False
@@ -46,6 +47,7 @@ class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     phone: Optional[str] = None
     bio: Optional[str] = None
+    unit: Optional[str] = None
     avatar_url: Optional[str] = None
 
 

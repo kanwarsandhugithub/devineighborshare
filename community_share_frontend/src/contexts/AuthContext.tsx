@@ -8,6 +8,7 @@ interface User {
   phone: string | null;
   avatar_url: string | null;
   bio: string;
+  unit: string;
   avg_rating: number | null;
   is_super_admin: boolean;
 }
