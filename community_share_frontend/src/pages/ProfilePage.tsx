@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Star, Edit, Check, X, Camera, Trash2, Package, Wrench } from "lucide-react";
 
 interface Review {
@@ -23,7 +24,7 @@ interface Item {
 
 interface Service {
   id: number; title: string; description: string; category: string;
-  price: number; is_available: boolean;
+  price: number; is_available: boolean; provider_id: number; community_id: number; created_at?: string;
 }
 
 export default function ProfilePage() {
@@ -34,6 +35,16 @@ export default function ProfilePage() {
   const [services, setServices] = useState<Service[]>([]);
   const [form, setForm] = useState({ full_name: "", phone: "", bio: "" });
   const [uploading, setUploading] = useState(false);
+  
+  // Edit item state
+  const [showEditItem, setShowEditItem] = useState(false);
+  const [editItemForm, setEditItemForm] = useState({ title: "", description: "", category: "", price_per_day: 0, is_available: true });
+  const [editItem, setEditItem] = useState<Item | null>(null);
+  
+  // Edit service state
+  const [showEditService, setShowEditService] = useState(false);
+  const [editServiceForm, setEditServiceForm] = useState({ title: "", description: "", category: "", price: 0, is_available: true });
+  const [editService, setEditService] = useState<Service | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -89,6 +100,56 @@ export default function ProfilePage() {
       setServices(services.filter(s => s.id !== serviceId));
     } catch {
       alert("Failed to delete service");
+    }
+  };
+
+  const handleEditItem = (item: Item) => {
+    setEditItem(item);
+    setEditItemForm({ 
+      title: item.title, 
+      description: item.description, 
+      category: item.category, 
+      price_per_day: item.price_per_day, 
+      is_available: item.is_available 
+    });
+    setShowEditItem(true);
+  };
+
+  const handleEditService = (service: Service) => {
+    setEditService(service);
+    setEditServiceForm({ 
+      title: service.title, 
+      description: service.description, 
+      category: service.category, 
+      price: service.price, 
+      is_available: service.is_available 
+    });
+    setShowEditService(true);
+  };
+
+  const handleSaveEditItem = async () => {
+    if (!editItem) return;
+    try {
+      await api.updateItem(editItem.id, editItemForm);
+      setShowEditItem(false);
+      setEditItem(null);
+      // Reload items
+      api.getMyItems().then(setItems).catch((e) => console.error("Failed to load items:", e));
+    } catch {
+      alert("Failed to update item");
+    }
+  };
+
+  const handleSaveEditService = async () => {
+    if (!editService) return;
+    try {
+      await api.updateService(editService.id, editServiceForm);
+      setShowEditService(false);
+      setEditService(null);
+      // Reload services
+      api.getMyServices().then(setServices).catch((e) => console.error("Failed to load services:", e));
+    } catch {
+      alert("Failed to update service");
     }
   };
 
@@ -223,14 +284,23 @@ export default function ProfilePage() {
                       </span>
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-red-600 border-red-200 hover:bg-red-50 ml-2"
-                    onClick={() => handleDeleteItem(item.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <div className="flex gap-1 ml-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleEditItem(item)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-red-600 border-red-200 hover:bg-red-50"
+                      onClick={() => handleDeleteItem(item.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -263,11 +333,23 @@ export default function ProfilePage() {
                       </span>
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-red-600 border-red-200 hover:bg-red-50 ml-2"
-                    onClick={() => handleDeleteService(service.id)}
+                  <div className="flex gap-1 ml-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleEditService(service)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-red-600 border-red-200 hover:bg-red-50"
+                      onClick={() => handleDeleteService(service.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -277,6 +359,104 @@ export default function ProfilePage() {
           ))}
         </div>
       )}
+
+      {/* Edit Item Dialog */}
+      <Dialog open={showEditItem} onOpenChange={setShowEditItem}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Item</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Title</Label>
+              <Input value={editItemForm.title} onChange={(e) => setEditItemForm({ ...editItemForm, title: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea value={editItemForm.description} onChange={(e) => setEditItemForm({ ...editItemForm, description: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <select
+                  value={editItemForm.category}
+                  onChange={(e) => setEditItemForm({ ...editItemForm, category: e.target.value })}
+                  className="w-full p-2 border rounded-md"
+                >
+                  <option value="">Select category</option>
+                  <option value="tools">Tools</option>
+                  <option value="electronics">Electronics</option>
+                  <option value="outdoor">Outdoor</option>
+                  <option value="kitchen">Kitchen</option>
+                  <option value="sports">Sports</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label>Price/Day ($)</Label>
+                <Input type="number" value={editItemForm.price_per_day} onChange={(e) => setEditItemForm({ ...editItemForm, price_per_day: parseFloat(e.target.value) })} />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="item-available"
+                checked={editItemForm.is_available}
+                onChange={(e) => setEditItemForm({ ...editItemForm, is_available: e.target.checked })}
+              />
+              <Label htmlFor="item-available">Available</Label>
+            </div>
+            <Button onClick={handleSaveEditItem} className="w-full bg-emerald-600 hover:bg-emerald-700">Save Changes</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Service Dialog */}
+      <Dialog open={showEditService} onOpenChange={setShowEditService}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Service</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Title</Label>
+              <Input value={editServiceForm.title} onChange={(e) => setEditServiceForm({ ...editServiceForm, title: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea value={editServiceForm.description} onChange={(e) => setEditServiceForm({ ...editServiceForm, description: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <select
+                  value={editServiceForm.category}
+                  onChange={(e) => setEditServiceForm({ ...editServiceForm, category: e.target.value })}
+                  className="w-full p-2 border rounded-md"
+                >
+                  <option value="">Select category</option>
+                  <option value="transportation">Transportation</option>
+                  <option value="handyman">Handyman</option>
+                  <option value="cleaning">Cleaning</option>
+                  <option value="tutoring">Tutoring</option>
+                  <option value="pet care">Pet Care</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label>Price ($)</Label>
+                <Input type="number" value={editServiceForm.price} onChange={(e) => setEditServiceForm({ ...editServiceForm, price: parseFloat(e.target.value) })} />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="service-available"
+                checked={editServiceForm.is_available}
+                onChange={(e) => setEditServiceForm({ ...editServiceForm, is_available: e.target.checked })}
+              />
+              <Label htmlFor="service-available">Available</Label>
+            </div>
+            <Button onClick={handleSaveEditService} className="w-full bg-emerald-600 hover:bg-emerald-700">Save Changes</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
