@@ -71,20 +71,6 @@ async def get_community_items(community_id: int, category: str = None, search: s
     return results
 
 
-@router.get("/{item_id}", response_model=ItemOut)
-async def get_item(item_id: int):
-    with get_db() as db:
-        row = db.execute(
-            """SELECT i.*, u.full_name as owner_name FROM items i
-               JOIN users u ON u.id = i.owner_id WHERE i.id = ?""",
-            (item_id,),
-        ).fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="Item not found")
-        image_urls = _get_item_image_urls(db, item_id)
-    return _item_from_row(row, image_urls)
-
-
 @router.get("/my", response_model=List[ItemOut])
 async def get_my_items(current_user_id: int = Depends(get_current_user_id)):
     with get_db() as db:
@@ -99,6 +85,20 @@ async def get_my_items(current_user_id: int = Depends(get_current_user_id)):
             image_urls = _get_item_image_urls(db, r["id"])
             results.append(_item_from_row(r, image_urls))
         return results
+
+
+@router.get("/{item_id}", response_model=ItemOut)
+async def get_item(item_id: int):
+    with get_db() as db:
+        row = db.execute(
+            """SELECT i.*, u.full_name as owner_name FROM items i
+               JOIN users u ON u.id = i.owner_id WHERE i.id = ?""",
+            (item_id,),
+        ).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Item not found")
+        image_urls = _get_item_image_urls(db, item_id)
+    return _item_from_row(row, image_urls)
 
 
 @router.put("/{item_id}", response_model=ItemOut)
