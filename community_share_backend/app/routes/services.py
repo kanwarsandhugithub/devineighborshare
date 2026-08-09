@@ -3,7 +3,7 @@ from typing import List
 from app.schemas.schemas import ServiceCreate, ServiceUpdate, ServiceOut, ServiceBookingCreate, ServiceBookingOut, ServiceBookingUpdate
 from app.utils.auth import get_current_user_id
 from app.utils.email import send_booking_request_email, send_booking_status_email
-from app.utils.notifications import notify_community
+from app.utils.notifications import create_notification, notify_community
 from app.database import get_db
 
 router = APIRouter(prefix="/api/services", tags=["services"])
@@ -183,6 +183,14 @@ async def create_booking(data: ServiceBookingCreate, background_tasks: Backgroun
             background_tasks.add_task(
                 send_booking_request_email, provider["email"], provider["full_name"],
                 requester["full_name"], svc["title"], data.scheduled_date, data.message
+            )
+            create_notification(
+                db,
+                svc["provider_id"],
+                "booking",
+                "New service booking",
+                f"{requester['full_name']} requested to book your service '{svc['title']}'",
+                {"type": "booking", "id": cursor.lastrowid, "service_id": data.service_id, "community_id": svc["community_id"]},
             )
     return _booking_from_row(row)
 

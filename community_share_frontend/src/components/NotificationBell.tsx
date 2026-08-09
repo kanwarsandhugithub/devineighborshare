@@ -75,7 +75,11 @@ export default function NotificationBell() {
     setOpen(false);
     try {
       const data = n.data ? JSON.parse(n.data) : {};
-      if (data.community_id) {
+      if (data.type === "message") {
+        navigate("/messages");
+      } else if (data.type === "rental" || data.type === "booking") {
+        navigate("/requests");
+      } else if (data.community_id) {
         navigate(`/community/${data.community_id}`);
       } else {
         navigate("/");

@@ -3,6 +3,7 @@ from typing import List
 from app.schemas.schemas import MessageCreate, MessageOut, ConversationOut
 from app.utils.auth import get_current_user_id
 from app.utils.email import send_new_message_email
+from app.utils.notifications import create_notification
 from app.database import get_db
 
 router = APIRouter(prefix="/api/messages", tags=["messages"])
@@ -34,6 +35,14 @@ async def send_message(data: MessageCreate, background_tasks: BackgroundTasks, c
             background_tasks.add_task(
                 send_new_message_email, receiver["email"], receiver["full_name"],
                 sender["full_name"], data.content
+            )
+            create_notification(
+                db,
+                data.receiver_id,
+                "message",
+                "New message",
+                f"{sender['full_name']} sent you a message",
+                {"type": "message", "sender_id": current_user_id, "message_id": cursor.lastrowid},
             )
     return _message_from_row(row)
 

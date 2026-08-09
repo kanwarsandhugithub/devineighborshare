@@ -3,7 +3,7 @@ from typing import List
 from app.schemas.schemas import ItemCreate, ItemUpdate, ItemOut, RentalRequestCreate, RentalRequestOut, RentalRequestUpdate
 from app.utils.auth import get_current_user_id
 from app.utils.email import send_rental_request_email, send_rental_status_email
-from app.utils.notifications import notify_community
+from app.utils.notifications import create_notification, notify_community
 from app.database import get_db
 
 router = APIRouter(prefix="/api/items", tags=["items"])
@@ -223,6 +223,14 @@ async def create_rental_request(data: RentalRequestCreate, background_tasks: Bac
             background_tasks.add_task(
                 send_rental_request_email, owner["email"], owner["full_name"],
                 requester["full_name"], item["title"], data.start_date, data.end_date, data.message
+            )
+            create_notification(
+                db,
+                item["owner_id"],
+                "rental",
+                "New rental request",
+                f"{requester['full_name']} requested to rent your item '{item['title']}'",
+                {"type": "rental", "id": cursor.lastrowid, "item_id": data.item_id, "community_id": item["community_id"]},
             )
     return _rental_from_row(row)
 
