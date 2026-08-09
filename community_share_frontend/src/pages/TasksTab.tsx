@@ -217,12 +217,20 @@ export default function TasksTab({ communityId }: TasksTabProps) {
                     <Handshake className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-sm line-clamp-1">{task.title}</h3>
-                      <Badge className="text-[10px] bg-orange-100 text-orange-700 hover:bg-orange-100">{task.category}</Badge>
-                      {task.status !== "open" && (
-                        <Badge className="text-[10px] bg-gray-100 text-gray-700 hover:bg-gray-100">{task.status}</Badge>
-                      )}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold text-sm line-clamp-1">{task.title}</h3>
+                        <Badge className="text-[10px] bg-orange-100 text-orange-700 hover:bg-orange-100">{task.category}</Badge>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <Avatar className="w-6 h-6">
+                          {task.requester_avatar_url ? <AvatarImage src={task.requester_avatar_url} alt={task.requester_name} /> : null}
+                          <AvatarFallback className="text-[10px] bg-emerald-100 text-emerald-700">{getInitials(task.requester_name)}</AvatarFallback>
+                        </Avatar>
+                        {task.requester_avg_rating != null && (
+                          <span className="text-[10px] text-amber-600 inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{task.requester_avg_rating}</span>
+                        )}
+                      </div>
                     </div>
                     <p className="text-xs text-gray-500 line-clamp-2 mt-1">{task.description}</p>
                     <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
@@ -230,6 +238,9 @@ export default function TasksTab({ communityId }: TasksTabProps) {
                       {task.scheduled_date && <span>{task.scheduled_date}</span>}
                       {task.compensation && <span>{task.compensation}</span>}
                       <span>{task.approved_count} helping · {task.pending_count} pending</span>
+                      {task.status !== "open" && (
+                        <Badge className="text-[10px] bg-gray-100 text-gray-700 hover:bg-gray-100">{task.status}</Badge>
+                      )}
                     </div>
                   </div>
                 </div>
