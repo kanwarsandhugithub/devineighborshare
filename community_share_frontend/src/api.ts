@@ -117,6 +117,17 @@ export const api = {
   updateBooking: (id: number, status: string) =>
     request(`/api/services/bookings/${id}`, { method: "PUT", body: JSON.stringify({ status }) }),
 
+  // Tasks
+  createTask: (data: { title: string; description: string; category: string; people_needed: number; location: string; scheduled_date: string; compensation: string; community_id: number }) =>
+    request("/api/tasks/", { method: "POST", body: JSON.stringify(data) }),
+  getCommunityTasks: (communityId: number) => request(`/api/tasks/community/${communityId}`),
+  getTask: (id: number) => request(`/api/tasks/${id}`),
+  updateTask: (id: number, data: Record<string, unknown>) => request(`/api/tasks/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deleteTask: (id: number) => request(`/api/tasks/${id}`, { method: "DELETE" }),
+  createTaskOffer: (taskId: number, data: { message: string }) => request(`/api/tasks/${taskId}/offers`, { method: "POST", body: JSON.stringify(data) }),
+  getTaskOffers: (taskId: number) => request(`/api/tasks/${taskId}/offers`),
+  updateTaskOffer: (offerId: number, data: { status: string }) => request(`/api/tasks/offers/${offerId}`, { method: "PUT", body: JSON.stringify(data) }),
+
   // Discussions
   createDiscussion: (data: { community_id: number; title: string; content: string; category: string }) =>
     request("/api/discussions/", { method: "POST", body: JSON.stringify(data) }),

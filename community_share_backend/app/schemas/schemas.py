@@ -301,3 +301,65 @@ class ConversationOut(BaseModel):
     last_message: str
     last_message_at: Optional[str] = None
     unread_count: int = 0
+
+
+class TaskRequestCreate(BaseModel):
+    title: str
+    description: str = ""
+    category: str = "other"
+    people_needed: int = 1
+    location: str = ""
+    scheduled_date: str = ""
+    compensation: str = ""
+    community_id: int
+
+
+class TaskRequestUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    people_needed: Optional[int] = None
+    location: Optional[str] = None
+    scheduled_date: Optional[str] = None
+    compensation: Optional[str] = None
+    status: Optional[str] = None
+
+
+class TaskOfferCreate(BaseModel):
+    message: str = ""
+
+
+class TaskOfferUpdate(BaseModel):
+    status: str
+
+
+class TaskOfferOut(BaseModel):
+    id: int
+    task_request_id: int
+    helper_id: int
+    helper_name: str
+    helper_avatar_url: Optional[str] = None
+    helper_avg_rating: Optional[float] = None
+    status: str
+    message: str
+    created_at: Optional[str] = None
+
+
+class TaskRequestOut(BaseModel):
+    id: int
+    title: str
+    description: str
+    category: str
+    people_needed: int
+    location: str
+    scheduled_date: str
+    compensation: str
+    status: str
+    requester_id: int
+    requester_name: str
+    requester_avatar_url: Optional[str] = None
+    requester_avg_rating: Optional[float] = None
+    community_id: int
+    created_at: Optional[str] = None
+    approved_count: int = 0
+    pending_count: int = 0

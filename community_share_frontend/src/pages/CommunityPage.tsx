@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Plus, Package, Wrench, MessageSquare, Send, ImagePlus, X, ChevronLeft, ChevronRight, Edit, Search, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Package, Wrench, Handshake, MessageSquare, Send, ImagePlus, X, ChevronLeft, ChevronRight, Edit, Search, Star, Trash2 } from "lucide-react";
+import TasksTab from "./TasksTab";
 
 interface Item {
   id: number; title: string; description: string; category: string;
@@ -355,9 +356,10 @@ export default function CommunityPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="items" className="text-xs"><Package className="w-3 h-3 mr-1" /> Items</TabsTrigger>
           <TabsTrigger value="services" className="text-xs"><Wrench className="w-3 h-3 mr-1" /> Services</TabsTrigger>
+          <TabsTrigger value="help" className="text-xs"><Handshake className="w-3 h-3 mr-1" /> Help</TabsTrigger>
           <TabsTrigger value="community" className="text-xs"><MessageSquare className="w-3 h-3 mr-1" /> Community</TabsTrigger>
         </TabsList>
 
@@ -680,6 +682,11 @@ export default function CommunityPage() {
               </Card>
             ))
           )}
+        </TabsContent>
+
+        {/* HELP REQUESTS TAB */}
+        <TabsContent value="help" className="space-y-3 mt-4">
+          <TasksTab communityId={communityId} />
         </TabsContent>
       </Tabs>
 

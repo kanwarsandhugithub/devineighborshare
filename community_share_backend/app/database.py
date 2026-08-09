@@ -172,6 +172,31 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
+        CREATE TABLE IF NOT EXISTS task_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            description TEXT DEFAULT '',
+            category TEXT DEFAULT 'other',
+            people_needed INTEGER DEFAULT 1,
+            location TEXT DEFAULT '',
+            scheduled_date TEXT,
+            compensation TEXT DEFAULT '',
+            status TEXT DEFAULT 'open',
+            requester_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            community_id INTEGER REFERENCES communities(id) ON DELETE CASCADE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS task_offers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_request_id INTEGER REFERENCES task_requests(id) ON DELETE CASCADE,
+            helper_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            status TEXT DEFAULT 'pending',
+            message TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(task_request_id, helper_id)
+        );
+
         CREATE TABLE IF NOT EXISTS password_reset_tokens (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,

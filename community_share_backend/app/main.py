@@ -8,7 +8,7 @@ load_dotenv(_env_path)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db
-from app.routes import auth, users, communities, items, services, discussions, messages, reviews, uploads
+from app.routes import auth, users, communities, items, services, discussions, messages, reviews, uploads, tasks
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="VicinityShare API")
@@ -42,3 +42,4 @@ app.include_router(discussions.router)
 app.include_router(messages.router)
 app.include_router(reviews.router)
 app.include_router(uploads.router)
+app.include_router(tasks.router)
