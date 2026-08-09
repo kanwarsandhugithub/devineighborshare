@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -51,6 +52,7 @@ interface TasksTabProps {
 
 export default function TasksTab({ communityId }: TasksTabProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -148,6 +150,11 @@ export default function TasksTab({ communityId }: TasksTabProps) {
   };
 
   const getInitials = (name: string) => name.split(" ").map((n) => n[0]).join("").toUpperCase();
+
+  const goToProfile = (userId: number) => {
+    setSelectedTask(null);
+    navigate(`/profile/${userId}`);
+  };
 
   const myPendingOffer = offers.find((o) => o.helper_id === user?.id);
 
@@ -257,7 +264,10 @@ export default function TasksTab({ communityId }: TasksTabProps) {
           </DialogHeader>
           {selectedTask && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+              <button
+                className="flex items-center gap-2 text-sm text-gray-500 hover:text-emerald-700"
+                onClick={() => goToProfile(selectedTask.requester_id)}
+              >
                 <Avatar className="w-8 h-8">
                   {selectedTask.requester_avatar_url ? <AvatarImage src={selectedTask.requester_avatar_url} alt={selectedTask.requester_name} /> : null}
                   <AvatarFallback className="text-xs bg-emerald-100 text-emerald-700">{getInitials(selectedTask.requester_name)}</AvatarFallback>
@@ -266,7 +276,7 @@ export default function TasksTab({ communityId }: TasksTabProps) {
                 {selectedTask.requester_avg_rating != null && (
                   <span className="text-amber-600 inline-flex items-center gap-0.5"><Star className="w-4 h-4 fill-amber-400 text-amber-400" />{selectedTask.requester_avg_rating}</span>
                 )}
-              </div>
+              </button>
               <p className="text-sm text-gray-600">{selectedTask.description}</p>
               <div className="grid grid-cols-2 gap-2 text-sm text-gray-500">
                 <p><span className="text-gray-400">Category:</span> {selectedTask.category}</p>
@@ -285,7 +295,10 @@ export default function TasksTab({ communityId }: TasksTabProps) {
                     ) : (
                       offers.map((offer) => (
                         <div key={offer.id} className="flex items-center justify-between p-2 border rounded-lg">
-                          <div className="flex items-center gap-2">
+                          <button
+                            className="flex items-center gap-2 text-left hover:text-emerald-700"
+                            onClick={() => goToProfile(offer.helper_id)}
+                          >
                             <Avatar className="w-7 h-7">
                               {offer.helper_avatar_url ? <AvatarImage src={offer.helper_avatar_url} alt={offer.helper_name} /> : null}
                               <AvatarFallback className="text-[10px] bg-gray-100">{getInitials(offer.helper_name)}</AvatarFallback>
@@ -295,7 +308,7 @@ export default function TasksTab({ communityId }: TasksTabProps) {
                               {offer.helper_avg_rating != null && <p className="text-xs text-amber-600 flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400" />{offer.helper_avg_rating}</p>}
                               {offer.message && <p className="text-xs text-gray-500 line-clamp-2">{offer.message}</p>}
                             </div>
-                          </div>
+                          </button>
                           {offer.status === "pending" ? (
                             <div className="flex gap-1">
                               <Button size="sm" variant="outline" onClick={() => updateOffer(offer.id, "approved")}><Check className="w-3 h-3" /></Button>
