@@ -9,10 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Users, LogIn, Package, Wrench, Clock, CheckCircle, XCircle, RotateCcw, ArrowRight, Send, MessageSquare, Star, Search, X, Shield } from "lucide-react";
+import { Plus, Users, LogIn, Package, Wrench, Handshake, Clock, CheckCircle, XCircle, RotateCcw, ArrowRight, Send, MessageSquare, Star, Search, X, Shield } from "lucide-react";
 
 const ITEM_CATEGORIES = ["tools", "electronics", "outdoor", "kitchen", "sports", "other"];
 const SERVICE_CATEGORIES = ["transportation", "handyman", "cleaning", "tutoring", "pet care", "other"];
+const HELP_CATEGORIES = ["moving", "assembly", "cleaning", "errands", "yard work", "pet care", "other"];
 
 function formatPrice(price: number, unit: string) {
   const labels: Record<string, string> = {
@@ -40,6 +41,14 @@ interface Service {
   id: number; title: string; description: string; category: string;
   price: number; price_unit: string; is_available: boolean; provider_id: number;
   provider_name: string; provider_avatar_url?: string; provider_avg_rating?: number; booking_count: number; created_at: string;
+}
+
+interface Task {
+  id: number; title: string; description: string; category: string;
+  people_needed: number; location: string; scheduled_date: string; compensation: string;
+  status: string; requester_id: number; requester_name: string;
+  requester_avatar_url?: string; requester_avg_rating?: number;
+  approved_count: number; pending_count: number; created_at: string;
 }
 
 interface RentalRequest {
@@ -109,6 +118,7 @@ export default function HomePage() {
   });
   const [items, setItems] = useState<Item[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [rentals, setRentals] = useState<RentalRequest[]>([]);
   const [bookings, setBookings] = useState<ServiceBooking[]>([]);
 
@@ -151,7 +161,7 @@ export default function HomePage() {
 
   const handleAskFavor = () => {
     setShowCreateMenu(false);
-    setRequestType("item");
+    setRequestType("help");
     setShowRequestDialog(true);
   };
 
@@ -181,8 +191,8 @@ export default function HomePage() {
   const [editService] = useState<Service | null>(null);
   const [editServiceForm, setEditServiceForm] = useState({ title: "", description: "", category: "", price: 0 });
   const [showRequestDialog, setShowRequestDialog] = useState(false);
-  const [requestType, setRequestType] = useState<"item" | "service" | "community" | null>(null);
-  const [requestForm, setRequestForm] = useState({ title: "", description: "", category: "", location: "", scheduled_date: "", compensation: "" });
+  const [requestType, setRequestType] = useState<"item" | "service" | "help" | "community" | null>(null);
+  const [requestForm, setRequestForm] = useState({ title: "", description: "", category: "", people_needed: 1, location: "", scheduled_date: "", compensation: "" });
 
   useEffect(() => {
     loadCommunities();
@@ -211,15 +221,17 @@ export default function HomePage() {
 
   const loadCommunityData = async (communityId: number) => {
     try {
-      const [itemsData, servicesData, rentalsData, bookingsData, reviewsData] = await Promise.all([
+      const [itemsData, servicesData, tasksData, rentalsData, bookingsData, reviewsData] = await Promise.all([
         api.getCommunityItems(communityId),
         api.getCommunityServices(communityId),
+        api.getCommunityTasks(communityId),
         api.getMyRentals(),
         api.getMyBookings(),
         api.getMyReviews(),
       ]);
       setItems(itemsData);
       setServices(servicesData);
+      setTasks(tasksData);
       setRentals(rentalsData);
       setBookings(bookingsData);
       setMyReviews(reviewsData);
@@ -378,12 +390,14 @@ export default function HomePage() {
           category: "general",
         });
       } else {
-        const titlePrefix = requestType === "item" ? "Looking for: " : "Requesting service: ";
+        const titlePrefix =
+          requestType === "item" ? "Looking for: " :
+          requestType === "service" ? "Requesting service: " : "";
         await api.createTask({
           title: titlePrefix + requestForm.title,
           description: requestForm.description,
           category: requestForm.category,
-          people_needed: 1,
+          people_needed: requestType === "help" ? requestForm.people_needed : 1,
           location: requestForm.location,
           scheduled_date: requestForm.scheduled_date,
           compensation: requestForm.compensation,
@@ -391,7 +405,7 @@ export default function HomePage() {
         });
       }
       setShowRequestDialog(false);
-      setRequestForm({ title: "", description: "", category: "", location: "", scheduled_date: "", compensation: "" });
+      setRequestForm({ title: "", description: "", category: "", people_needed: 1, location: "", scheduled_date: "", compensation: "" });
       setRequestType(null);
       navigate(`/community/${selectedCommunityId}`);
     } catch (err) {
@@ -417,9 +431,16 @@ export default function HomePage() {
     svc.category.toLowerCase().includes(q) || 
     (svc.provider_name && svc.provider_name.toLowerCase().includes(q))
   ) : services;
+  const filteredTasks = q ? tasks.filter((task) =>
+    task.title.toLowerCase().includes(q) ||
+    (task.description && task.description.toLowerCase().includes(q)) ||
+    task.category.toLowerCase().includes(q) ||
+    (task.requester_name && task.requester_name.toLowerCase().includes(q))
+  ) : tasks;
   // Sort by popularity (owner/provider rating) descending and take top 9
   const popularItems = [...filteredItems].sort((a, b) => (b.owner_avg_rating || 0) - (a.owner_avg_rating || 0)).slice(0, 9);
   const popularServices = [...filteredServices].sort((a, b) => (b.provider_avg_rating || 0) - (a.provider_avg_rating || 0)).slice(0, 9);
+  const popularTasks = [...filteredTasks].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()).slice(0, 9);
   const primaryCommunity = communities.find((c) => c.id === selectedCommunityId) || (communities.length > 0 ? communities[0] : null);
 
   return (
@@ -771,6 +792,75 @@ export default function HomePage() {
             )}
           </div>
 
+          {/* Help Requests Panel */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="font-semibold text-gray-700 flex items-center gap-2">
+                <Handshake className="w-4 h-4 text-orange-600" /> Help Requests
+              </h2>
+              <div className="flex gap-1">
+                {primaryCommunity && (
+                  <Button size="sm" variant="ghost" className="text-xs text-orange-600" onClick={() => navigate(`/community/${primaryCommunity.id}`)}>
+                    View All <ArrowRight className="w-3 h-3 ml-1" />
+                  </Button>
+                )}
+                <Button size="sm" variant="outline" className="text-xs" onClick={() => { setRequestType("help"); setShowRequestDialog(true); }}>
+                  <Plus className="w-3 h-3 mr-1" /> Ask for Help
+                </Button>
+              </div>
+            </div>
+            {popularTasks.length === 0 ? (
+              <Card>
+                <CardContent className="py-4 text-center">
+                  <p className="text-gray-400 text-sm mb-2">{q ? "No help requests match your search" : "No help requests yet"}</p>
+                  {!q && (
+                    <Button size="sm" variant="outline" onClick={() => { setRequestType("help"); setShowRequestDialog(true); }}>
+                      <Plus className="w-3 h-3 mr-1" /> Ask for Help
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {popularTasks.map((task) => (
+                  <Card key={task.id} className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/community/${selectedCommunityId}`)}>
+                    <CardContent className="p-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-500 flex-shrink-0">
+                          <Handshake className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-semibold text-sm line-clamp-1">{task.title}</h3>
+                            <Badge className="text-[10px] bg-orange-100 text-orange-700 hover:bg-orange-100">{task.category}</Badge>
+                          </div>
+                          <p className="text-xs text-gray-500 line-clamp-2 mt-1">{task.description}</p>
+                          <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                            <span>{task.people_needed} needed</span>
+                            {task.scheduled_date && <span>{task.scheduled_date}</span>}
+                            {task.compensation && <span>{task.compensation}</span>}
+                            <span>{task.approved_count} helping · {task.pending_count} pending</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-2 pt-2 border-t">
+                            {task.requester_avatar_url ? (
+                              <img src={task.requester_avatar_url} alt={task.requester_name} className="w-6 h-6 rounded-full object-cover" />
+                            ) : (
+                              <span className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-[10px]">{task.requester_name?.charAt(0)?.toUpperCase()}</span>
+                            )}
+                            <span className="text-xs text-gray-500">{task.requester_name}</span>
+                            {task.requester_avg_rating != null && (
+                              <span className="text-xs text-amber-600 inline-flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400 text-amber-400" />{task.requester_avg_rating}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Sent Requests Panel */}
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -1075,6 +1165,7 @@ export default function HomePage() {
             <DialogTitle>
               {requestType === "item" ? "Request an Item" : 
                requestType === "service" ? "Request a Service" : 
+               requestType === "help" ? "Ask for Help" :
                "Create Community Post"}
             </DialogTitle>
           </DialogHeader>
@@ -1083,6 +1174,7 @@ export default function HomePage() {
               <Label>
                 {requestType === "item" ? "What item are you looking for?" : 
                  requestType === "service" ? "What service do you need?" : 
+                 requestType === "help" ? "What do you need help with?" :
                  "Post Title"}
               </Label>
               <Input
@@ -1090,6 +1182,7 @@ export default function HomePage() {
                 onChange={(e) => setRequestForm({ ...requestForm, title: e.target.value })}
                 placeholder={requestType === "item" ? "e.g., Power drill" : 
                           requestType === "service" ? "e.g., Plumbing help" : 
+                          requestType === "help" ? "e.g., Help moving a couch" :
                           "e.g., Looking for recommendations"}
                 required
               />
@@ -1101,6 +1194,7 @@ export default function HomePage() {
                 onChange={(e) => setRequestForm({ ...requestForm, description: e.target.value })}
                 placeholder={requestType === "item" ? "Describe what you need and when..." : 
                           requestType === "service" ? "Describe the service you need and any details..." : 
+                          requestType === "help" ? "Describe what you need help with..." :
                           "Share your thoughts or questions with the community..."}
                 rows={3}
                 required
@@ -1118,11 +1212,22 @@ export default function HomePage() {
                     required
                   >
                     <option value="">Select a category</option>
-                    {(requestType === "item" ? ITEM_CATEGORIES : SERVICE_CATEGORIES).map((c) => (
+                    {(requestType === "item" ? ITEM_CATEGORIES : requestType === "service" ? SERVICE_CATEGORIES : HELP_CATEGORIES).map((c) => (
                       <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
                     ))}
                   </select>
                 </div>
+                {requestType === "help" && (
+                  <div className="space-y-2">
+                    <Label>People Needed</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={requestForm.people_needed}
+                      onChange={(e) => setRequestForm({ ...requestForm, people_needed: Number(e.target.value) })}
+                    />
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Location</Label>
@@ -1153,7 +1258,7 @@ export default function HomePage() {
             )}
 
             <p className="text-xs text-gray-500">
-              This will create a discussion post in your community so neighbors can see your request and offer to help.
+              This will post in your community so neighbors can see your request and offer to help.
             </p>
             <div className="flex gap-2">
               <Button type="submit" className="flex-1 bg-emerald-600 hover:bg-emerald-700">
