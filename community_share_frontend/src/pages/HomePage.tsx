@@ -605,7 +605,19 @@ export default function HomePage() {
               </div>
             </div>
             {popularItems.length === 0 ? (
-              <Card><CardContent className="py-4 text-center text-gray-400 text-sm">{q ? "No items match your search" : "No items listed yet"}</CardContent></Card>
+              <Card>
+                <CardContent className="py-4 text-center">
+                  <p className="text-gray-400 text-sm mb-2">{q ? "No items match your search" : "No items listed yet"}</p>
+                  {q && (
+                    <>
+                      <p className="text-xs text-gray-500 mb-3">Can’t find what you need? Ask the community for help.</p>
+                      <Button size="sm" variant="outline" onClick={() => { setRequestType("item"); setShowRequestDialog(true); }}>
+                        <Plus className="w-3 h-3 mr-1" /> Request Item
+                      </Button>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {popularItems.map((item) => (
@@ -687,7 +699,19 @@ export default function HomePage() {
               </div>
             </div>
             {popularServices.length === 0 ? (
-              <Card><CardContent className="py-4 text-center text-gray-400 text-sm">{q ? "No services match your search" : "No services offered yet"}</CardContent></Card>
+              <Card>
+                <CardContent className="py-4 text-center">
+                  <p className="text-gray-400 text-sm mb-2">{q ? "No services match your search" : "No services offered yet"}</p>
+                  {q && (
+                    <>
+                      <p className="text-xs text-gray-500 mb-3">Can’t find what you need? Ask the community for help.</p>
+                      <Button size="sm" variant="outline" onClick={() => { setRequestType("service"); setShowRequestDialog(true); }}>
+                        <Plus className="w-3 h-3 mr-1" /> Request Service
+                      </Button>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {popularServices.map((svc) => (

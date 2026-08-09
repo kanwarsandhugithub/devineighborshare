@@ -90,7 +90,6 @@ function ItemImageGallery({ images, title }: { images: string[]; title: string }
 }
 
 export default function CommunityPage() {
-  console.log("[DEBUG CommunityPage] loaded");
   const { id } = useParams<{ id: string }>();
   const communityId = Number(id);
   const navigate = useNavigate();
@@ -441,7 +440,6 @@ export default function CommunityPage() {
             </select>
           </div>
 
-          {(() => { console.log("[DEBUG items] count:", items.length, "search:", itemSearch, "category:", itemCategoryFilter, "filtered:", items.map(i => i.title)); return null; })()}
           {items.length === 0 ? (
             <Card className="text-center py-8"><CardContent>
               <p className="text-gray-400 mb-3">No items found</p>
