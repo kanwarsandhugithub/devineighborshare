@@ -441,7 +441,13 @@ export default function CommunityPage() {
           </div>
 
           {items.length === 0 ? (
-            <Card className="text-center py-8"><CardContent><p className="text-gray-400">No items found</p></CardContent></Card>
+            <Card className="text-center py-8"><CardContent>
+              <p className="text-gray-400 mb-3">No items found</p>
+              <p className="text-sm text-gray-500 mb-3">Can’t find what you need? Ask the community for help.</p>
+              <Button variant="outline" size="sm" onClick={() => setActiveTab("help")}>
+                <Handshake className="w-4 h-4 mr-1" /> Post a Help Request
+              </Button>
+            </CardContent></Card>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {items.map((item) => (
@@ -558,7 +564,13 @@ export default function CommunityPage() {
           </div>
 
           {services.length === 0 ? (
-            <Card className="text-center py-8"><CardContent><p className="text-gray-400">No services found</p></CardContent></Card>
+            <Card className="text-center py-8"><CardContent>
+              <p className="text-gray-400 mb-3">No services found</p>
+              <p className="text-sm text-gray-500 mb-3">Can’t find what you need? Ask the community for help.</p>
+              <Button variant="outline" size="sm" onClick={() => setActiveTab("help")}>
+                <Handshake className="w-4 h-4 mr-1" /> Post a Help Request
+              </Button>
+            </CardContent></Card>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {services.map((svc) => (
