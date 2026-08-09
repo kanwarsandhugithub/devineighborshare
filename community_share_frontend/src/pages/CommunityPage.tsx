@@ -441,7 +441,7 @@ export default function CommunityPage() {
             </select>
           </div>
 
-          {console.log("[DEBUG items] count:", items.length, "search:", itemSearch, "category:", itemCategory, "filtered:", items.map(i => i.title))}
+          {(() => { console.log("[DEBUG items] count:", items.length, "search:", itemSearch, "category:", itemCategoryFilter, "filtered:", items.map(i => i.title)); return null; })()}
           {items.length === 0 ? (
             <Card className="text-center py-8"><CardContent>
               <p className="text-gray-400 mb-3">No items found</p>
@@ -565,7 +565,7 @@ export default function CommunityPage() {
             </select>
           </div>
 
-          {console.log("[DEBUG services] count:", services.length, "search:", serviceSearch, "category:", serviceCategoryFilter, "filtered:", services.map(s => s.title))}
+          {(() => { console.log("[DEBUG services] count:", services.length, "search:", serviceSearch, "category:", serviceCategoryFilter, "filtered:", services.map(s => s.title)); return null; })()}
           {services.length === 0 ? (
             <Card className="text-center py-8"><CardContent>
               <p className="text-gray-400 mb-3">No services found</p>
