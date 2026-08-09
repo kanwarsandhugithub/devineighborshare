@@ -370,40 +370,29 @@ export default function HomePage() {
     e.preventDefault();
     if (!selectedCommunityId || !requestType) return;
     try {
-      let category, titlePrefix;
-      if (requestType === "item") {
-        category = "item-request";
-        titlePrefix = "Looking for: ";
-      } else if (requestType === "service") {
-        category = "service-request";
-        titlePrefix = "Requesting service: ";
-      } else if (requestType === "community") {
-        category = "general";
-        titlePrefix = "";
+      if (requestType === "community") {
+        await api.createDiscussion({
+          community_id: selectedCommunityId,
+          title: requestForm.title,
+          content: requestForm.description,
+          category: "general",
+        });
       } else {
-        return;
+        const titlePrefix = requestType === "item" ? "Looking for: " : "Requesting service: ";
+        await api.createTask({
+          title: titlePrefix + requestForm.title,
+          description: requestForm.description,
+          category: requestForm.category,
+          people_needed: 1,
+          location: requestForm.location,
+          scheduled_date: requestForm.scheduled_date,
+          compensation: requestForm.compensation,
+          community_id: selectedCommunityId,
+        });
       }
-      let content = requestForm.description;
-      if (requestType !== "community") {
-        const details: string[] = [];
-        if (requestForm.category) details.push(`Category: ${requestForm.category}`);
-        if (requestForm.location) details.push(`Location: ${requestForm.location}`);
-        if (requestForm.scheduled_date) details.push(`When: ${requestForm.scheduled_date}`);
-        if (requestForm.compensation) details.push(`Compensation: ${requestForm.compensation}`);
-        if (details.length > 0) {
-          content += "\n\n" + details.join("\n");
-        }
-      }
-      await api.createDiscussion({
-        community_id: selectedCommunityId,
-        title: titlePrefix + requestForm.title,
-        content,
-        category: category,
-      });
       setShowRequestDialog(false);
       setRequestForm({ title: "", description: "", category: "", location: "", scheduled_date: "", compensation: "" });
       setRequestType(null);
-      // Navigate to community discussions
       navigate(`/community/${selectedCommunityId}`);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to create request");
