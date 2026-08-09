@@ -182,7 +182,7 @@ export default function HomePage() {
   const [editServiceForm, setEditServiceForm] = useState({ title: "", description: "", category: "", price: 0 });
   const [showRequestDialog, setShowRequestDialog] = useState(false);
   const [requestType, setRequestType] = useState<"item" | "service" | "community" | null>(null);
-  const [requestForm, setRequestForm] = useState({ title: "", description: "" });
+  const [requestForm, setRequestForm] = useState({ title: "", description: "", category: "", location: "", scheduled_date: "", compensation: "" });
 
   useEffect(() => {
     loadCommunities();
@@ -383,14 +383,25 @@ export default function HomePage() {
       } else {
         return;
       }
+      let content = requestForm.description;
+      if (requestType !== "community") {
+        const details: string[] = [];
+        if (requestForm.category) details.push(`Category: ${requestForm.category}`);
+        if (requestForm.location) details.push(`Location: ${requestForm.location}`);
+        if (requestForm.scheduled_date) details.push(`When: ${requestForm.scheduled_date}`);
+        if (requestForm.compensation) details.push(`Compensation: ${requestForm.compensation}`);
+        if (details.length > 0) {
+          content += "\n\n" + details.join("\n");
+        }
+      }
       await api.createDiscussion({
         community_id: selectedCommunityId,
         title: titlePrefix + requestForm.title,
-        content: requestForm.description,
+        content,
         category: category,
       });
       setShowRequestDialog(false);
-      setRequestForm({ title: "", description: "" });
+      setRequestForm({ title: "", description: "", category: "", location: "", scheduled_date: "", compensation: "" });
       setRequestType(null);
       // Navigate to community discussions
       navigate(`/community/${selectedCommunityId}`);
@@ -1106,6 +1117,52 @@ export default function HomePage() {
                 required
               />
             </div>
+
+            {requestType !== "community" && (
+              <>
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <select
+                    className="w-full border rounded-md p-2 text-sm"
+                    value={requestForm.category}
+                    onChange={(e) => setRequestForm({ ...requestForm, category: e.target.value })}
+                    required
+                  >
+                    <option value="">Select a category</option>
+                    {(requestType === "item" ? ITEM_CATEGORIES : SERVICE_CATEGORIES).map((c) => (
+                      <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Location</Label>
+                    <Input
+                      value={requestForm.location}
+                      onChange={(e) => setRequestForm({ ...requestForm, location: e.target.value })}
+                      placeholder="Building A, Apt 4B"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Date/Time</Label>
+                    <Input
+                      value={requestForm.scheduled_date}
+                      onChange={(e) => setRequestForm({ ...requestForm, scheduled_date: e.target.value })}
+                      placeholder="Saturday 10am"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Compensation</Label>
+                  <Input
+                    value={requestForm.compensation}
+                    onChange={(e) => setRequestForm({ ...requestForm, compensation: e.target.value })}
+                    placeholder="Pizza and beer"
+                  />
+                </div>
+              </>
+            )}
+
             <p className="text-xs text-gray-500">
               This will create a discussion post in your community so neighbors can see your request and offer to help.
             </p>
