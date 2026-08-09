@@ -9,6 +9,7 @@ from app.schemas.schemas import (
     TaskOfferOut,
 )
 from app.utils.auth import get_current_user_id
+from app.utils.notifications import notify_community
 from app.database import get_db
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
@@ -72,10 +73,20 @@ async def create_task(data: TaskRequestCreate, current_user_id: int = Depends(ge
             (data.title, data.description, data.category, data.people_needed, data.location,
              data.scheduled_date, data.compensation, current_user_id, data.community_id),
         )
+        task_id = cursor.lastrowid
+        notify_community(
+            db,
+            data.community_id,
+            current_user_id,
+            "help",
+            "New help request",
+            f"A new help request '{data.title}' was posted in your community",
+            {"type": "task", "id": task_id, "community_id": data.community_id},
+        )
         row = db.execute(
             """SELECT t.*, u.full_name as requester_name FROM task_requests t
                JOIN users u ON u.id = t.requester_id WHERE t.id = ?""",
-            (cursor.lastrowid,),
+            (task_id,),
         ).fetchone()
     return _task_from_row(row)
 

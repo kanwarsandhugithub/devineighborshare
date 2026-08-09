@@ -363,3 +363,14 @@ class TaskRequestOut(BaseModel):
     created_at: Optional[str] = None
     approved_count: int = 0
     pending_count: int = 0
+
+
+class NotificationOut(BaseModel):
+    id: int
+    user_id: int
+    type: str
+    title: str
+    message: str
+    data: str = "{}"
+    is_read: bool = False
+    created_at: Optional[str] = None

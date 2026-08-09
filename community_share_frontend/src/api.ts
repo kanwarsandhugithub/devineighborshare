@@ -151,4 +151,10 @@ export const api = {
   getRentalReviews: (rentalId: number) => request(`/api/reviews/rental/${rentalId}`),
   getBookingReviews: (bookingId: number) => request(`/api/reviews/booking/${bookingId}`),
   getMyReviews: () => request("/api/reviews/my"),
+
+  // Notifications
+  getNotifications: () => request("/api/notifications"),
+  getUnreadNotificationCount: () => request("/api/notifications/unread-count"),
+  markNotificationRead: (id: number) => request(`/api/notifications/${id}/read`, { method: "POST" }),
+  markAllNotificationsRead: () => request("/api/notifications/read-all", { method: "POST" }),
 };

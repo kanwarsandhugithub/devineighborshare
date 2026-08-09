@@ -3,6 +3,7 @@ from typing import List
 from app.schemas.schemas import ItemCreate, ItemUpdate, ItemOut, RentalRequestCreate, RentalRequestOut, RentalRequestUpdate
 from app.utils.auth import get_current_user_id
 from app.utils.email import send_rental_request_email, send_rental_status_email
+from app.utils.notifications import notify_community
 from app.database import get_db
 
 router = APIRouter(prefix="/api/items", tags=["items"])
@@ -37,6 +38,15 @@ async def create_item(data: ItemCreate, current_user_id: int = Depends(get_curre
                 "INSERT INTO item_images (item_id, image_url, display_order) VALUES (?, ?, ?)",
                 (item_id, url, idx),
             )
+        notify_community(
+            db,
+            data.community_id,
+            current_user_id,
+            "item",
+            "New item listed",
+            f"A new item '{data.title}' was listed in your community",
+            {"type": "item", "id": item_id, "community_id": data.community_id},
+        )
         row = db.execute(
             """SELECT i.*, u.full_name as owner_name FROM items i
                JOIN users u ON u.id = i.owner_id WHERE i.id = ?""",

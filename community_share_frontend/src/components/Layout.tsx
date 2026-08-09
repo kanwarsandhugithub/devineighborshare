@@ -1,6 +1,7 @@
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import { Home, MessageSquare, User, ClipboardList, Shield } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import NotificationBell from "./NotificationBell";
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -25,6 +26,9 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
+      <div className="fixed top-3 right-3 z-50">
+        <NotificationBell />
+      </div>
       <Outlet />
       <div className="flex justify-center gap-3 py-3 text-xs text-gray-400 max-w-2xl mx-auto">
         <Link to="/terms" className="hover:text-emerald-600 hover:underline">Terms of Service</Link>

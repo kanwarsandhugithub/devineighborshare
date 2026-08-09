@@ -3,6 +3,7 @@ from typing import List
 from app.schemas.schemas import ServiceCreate, ServiceUpdate, ServiceOut, ServiceBookingCreate, ServiceBookingOut, ServiceBookingUpdate
 from app.utils.auth import get_current_user_id
 from app.utils.email import send_booking_request_email, send_booking_status_email
+from app.utils.notifications import notify_community
 from app.database import get_db
 
 router = APIRouter(prefix="/api/services", tags=["services"])
@@ -24,6 +25,16 @@ async def create_service(data: ServiceCreate, current_user_id: int = Depends(get
         cursor = db.execute(
             "INSERT INTO services (title, description, category, price, price_unit, provider_id, community_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
             (data.title, data.description, data.category, data.price, data.price_unit, current_user_id, data.community_id),
+        )
+        service_id = cursor.lastrowid
+        notify_community(
+            db,
+            data.community_id,
+            current_user_id,
+            "service",
+            "New service offered",
+            f"A new service '{data.title}' was offered in your community",
+            {"type": "service", "id": service_id, "community_id": data.community_id},
         )
         row = db.execute(
             """SELECT s.*, u.full_name as provider_name FROM services s

@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from app.schemas.schemas import DiscussionCreate, DiscussionOut, CommentCreate, CommentOut
 from app.utils.auth import get_current_user_id
+from app.utils.notifications import notify_community
 from app.database import get_db
 
 router = APIRouter(prefix="/api/discussions", tags=["discussions"])
@@ -24,12 +25,22 @@ async def create_discussion(data: DiscussionCreate, current_user_id: int = Depen
             "INSERT INTO discussions (community_id, author_id, title, content, category) VALUES (?, ?, ?, ?, ?)",
             (data.community_id, current_user_id, data.title, data.content, data.category),
         )
+        discussion_id = cursor.lastrowid
+        notify_community(
+            db,
+            data.community_id,
+            current_user_id,
+            "discussion",
+            "New community post",
+            f"A new post '{data.title}' was shared in your community",
+            {"type": "discussion", "id": discussion_id, "community_id": data.community_id},
+        )
         row = db.execute(
             """SELECT d.*, u.full_name as author_name, u.avatar_url as author_avatar_url,
                (SELECT ROUND(AVG(rv.rating), 1) FROM reviews rv WHERE rv.reviewed_user_id = d.author_id) as author_avg_rating,
                (SELECT COUNT(*) FROM discussion_comments WHERE discussion_id = d.id) as comment_count
                FROM discussions d JOIN users u ON u.id = d.author_id WHERE d.id = ?""",
-            (cursor.lastrowid,),
+            (discussion_id,),
         ).fetchone()
     return _discussion_from_row(row)
 
