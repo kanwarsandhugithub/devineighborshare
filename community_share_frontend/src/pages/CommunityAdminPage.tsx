@@ -92,6 +92,17 @@ export default function CommunityAdminPage() {
     }
   };
 
+  const handleRemoveMember = async (user_id: number, full_name: string) => {
+    if (!confirm(`Remove ${full_name} from the community?`)) return;
+    try {
+      await api.removeMember(communityId, user_id);
+      setSuccess("Member removed");
+      loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to remove member");
+    }
+  };
+
   const handleDelete = async () => {
     if (!confirm("Are you sure? This will delete the community and all its data. This cannot be undone.")) return;
     try {
@@ -189,8 +200,13 @@ export default function CommunityAdminPage() {
                     <p className="text-xs text-gray-400">{member.email}</p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex items-center gap-2">
                   {member.role === 'admin' && <Badge className="bg-amber-100 text-amber-700 text-[10px]">Admin</Badge>}
+                  {member.id !== user?.id && (
+                    <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 h-7 px-2" onClick={() => handleRemoveMember(member.id, member.full_name)}>
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}

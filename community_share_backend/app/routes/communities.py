@@ -222,6 +222,18 @@ async def decline_join_request(request_id: int, current_user_id: int = Depends(g
     return {"detail": "Request declined"}
 
 
+@router.delete("/{community_id}/members/{user_id}")
+async def remove_member(community_id: int, user_id: int, current_user_id: int = Depends(get_current_user_id)):
+    with get_db() as db:
+        if not is_super_admin(db, current_user_id) and not is_community_admin(db, current_user_id, community_id):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        db.execute(
+            "DELETE FROM community_members WHERE community_id = ? AND user_id = ?",
+            (community_id, user_id),
+        )
+    return {"detail": "Member removed"}
+
+
 @router.delete("/{community_id}")
 async def delete_community(community_id: int, current_user_id: int = Depends(get_current_user_id)):
     """Super-admin or community admin: delete a community and all its related data."""
