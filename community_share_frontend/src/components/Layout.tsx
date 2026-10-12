@@ -12,21 +12,27 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const [adminCommunityId, setAdminCommunityId] = useState<number | null>(null);
+  const [myCommunities, setMyCommunities] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) return;
     const load = async () => {
       try {
         const data = await api.getMyCommunities();
-        const adminComm = data.find((c: any) => c.role === 'admin');
-        if (adminComm) setAdminCommunityId(adminComm.id);
+        setMyCommunities(data);
       } catch {
         // ignore
       }
     };
     load();
   }, [user]);
+
+  const savedId = localStorage.getItem('selectedCommunityId');
+  const parsedId = savedId ? parseInt(savedId, 10) : null;
+  const adminComm =
+    myCommunities.find((c: any) => c.role === 'admin' && c.id === parsedId) ||
+    myCommunities.find((c: any) => c.role === 'admin');
+  const adminCommunityId = adminComm?.id || null;
 
   const tabs = [
     { path: "/", icon: Home, label: "Home" },
