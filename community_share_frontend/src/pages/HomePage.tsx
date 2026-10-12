@@ -628,8 +628,9 @@ export default function HomePage() {
           <CardContent>
             <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-800 mb-2">Welcome, {user?.full_name}!</h2>
-            <p className="text-gray-500 mb-6">Create your own community or join one with a code to get started.</p>
+            <p className="text-gray-500 mb-6">Create your own community, join one with a code, or find an existing one.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button size="lg" variant="outline" onClick={() => setShowFind(true)}><Search className="w-4 h-4 mr-2" /> Find a Community</Button>
               <Button size="lg" variant="outline" onClick={() => setShowJoin(true)}><LogIn className="w-4 h-4 mr-2" /> Join a Community</Button>
               <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setShowCreate(true)}><Plus className="w-4 h-4 mr-2" /> Create a Community</Button>
             </div>
