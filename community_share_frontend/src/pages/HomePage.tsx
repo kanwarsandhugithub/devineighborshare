@@ -562,20 +562,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {primaryCommunity && isAdmin && (
-        <Card className="mb-4 bg-amber-50 border-amber-200">
-          <CardContent className="p-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-amber-600" />
-              <span className="text-sm font-medium text-amber-900">You are an admin of {primaryCommunity.name}</span>
-            </div>
-            <Button size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => navigate(`/community/${primaryCommunity.id}`)}>
-              Manage
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
       {loading ? (
         <div className="text-center text-gray-400 py-12">Loading...</div>
       ) : communities.length === 0 ? (
@@ -1085,6 +1071,23 @@ export default function HomePage() {
             </div>
           )}
         </div>
+      )}
+
+      {primaryCommunity && isAdmin && (
+        <Card className="mt-6 bg-amber-50 border-amber-200">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Shield className="w-5 h-5 text-amber-600" />
+              <div>
+                <p className="font-medium text-sm text-amber-900">Admin: {primaryCommunity.name}</p>
+                <p className="text-xs text-amber-700">Manage settings, members, and join code</p>
+              </div>
+            </div>
+            <Button size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => navigate(`/community/${primaryCommunity.id}/admin`)}>
+              Open Admin
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       {/* Rent Dialog */}

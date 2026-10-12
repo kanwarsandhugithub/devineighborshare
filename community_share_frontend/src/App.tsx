@@ -14,6 +14,7 @@ import RequestsPage from "./pages/RequestsPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import AdminPage from "./pages/AdminPage";
+import CommunityAdminPage from "./pages/CommunityAdminPage";
 import PublicProfilePage from "./pages/PublicProfilePage";
 
 function AuthGate() {
@@ -45,6 +46,7 @@ function AuthGate() {
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/community/:id" element={<CommunityPage />} />
+        <Route path="/community/:id/admin" element={<CommunityAdminPage />} />
         <Route path="/discussion/:id" element={<DiscussionPage />} />
         <Route path="/messages" element={<MessagesPage />} />
         <Route path="/messages/:userId" element={<ChatPage />} />
