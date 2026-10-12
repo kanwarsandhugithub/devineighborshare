@@ -1,21 +1,35 @@
-import secrets
+import re
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from app.schemas.schemas import CommunityCreate, CommunityOut, CommunityJoin, CommunityUpdate
-from app.utils.auth import get_current_user_id, get_current_user_email
+from app.utils.auth import get_current_user_id
 from app.database import get_db
 
 router = APIRouter(prefix="/api/communities", tags=["communities"])
 
 
+def _slugify_name(name: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+    return slug[:20] or "community"
+
+
+def _generate_join_code(db, name: str) -> str:
+    base = _slugify_name(name)
+    existing = db.execute(
+        "SELECT join_code FROM communities WHERE join_code LIKE ?",
+        (f"{base}-%",),
+    ).fetchall()
+    used = {r["join_code"] for r in existing}
+    counter = 1
+    while f"{base}-{counter}" in used:
+        counter += 1
+    return f"{base}-{counter}"
+
+
 @router.post("/", response_model=CommunityOut)
-async def create_community(data: CommunityCreate, current_user_id: int = Depends(get_current_user_id), current_user_email: str = Depends(get_current_user_email)):
-    # Only allow kanwarsandhu@gmail.com to create communities
-    if current_user_email != "kanwarsandhu@gmail.com":
-        raise HTTPException(status_code=403, detail="Only admin can create communities")
-    
-    join_code = secrets.token_urlsafe(6)
+async def create_community(data: CommunityCreate, current_user_id: int = Depends(get_current_user_id)):
     with get_db() as db:
+        join_code = _generate_join_code(db, data.name)
         cursor = db.execute(
             "INSERT INTO communities (name, description, address, join_code, created_by) VALUES (?, ?, ?, ?, ?)",
             (data.name, data.description, data.address, join_code, current_user_id),
