@@ -1073,23 +1073,6 @@ export default function HomePage() {
         </div>
       )}
 
-      {primaryCommunity && isAdmin && (
-        <Card className="mt-6 bg-amber-50 border-amber-200">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Shield className="w-5 h-5 text-amber-600" />
-              <div>
-                <p className="font-medium text-sm text-amber-900">Admin: {primaryCommunity.name}</p>
-                <p className="text-xs text-amber-700">Manage settings, members, and join code</p>
-              </div>
-            </div>
-            <Button size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => navigate(`/community/${primaryCommunity.id}/admin`)}>
-              Open Admin
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Rent Dialog */}
       <Dialog open={showRentDialog} onOpenChange={setShowRentDialog}>
         <DialogContent>

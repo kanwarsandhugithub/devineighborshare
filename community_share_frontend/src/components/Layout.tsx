@@ -1,12 +1,29 @@
+import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import { Home, MessageSquare, User, ClipboardList, Shield } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { api } from "../api";
 import NotificationBell from "./NotificationBell";
 
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const [adminCommunityId, setAdminCommunityId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    const load = async () => {
+      try {
+        const data = await api.getMyCommunities();
+        const adminComm = data.find((c: any) => c.created_by === user?.id);
+        if (adminComm) setAdminCommunityId(adminComm.id);
+      } catch {
+        // ignore
+      }
+    };
+    load();
+  }, [user]);
 
   const tabs = [
     { path: "/", icon: Home, label: "Home" },
@@ -48,6 +65,17 @@ export default function Layout() {
             <span className="text-xs">{tab.label}</span>
           </button>
         ))}
+        {adminCommunityId && (
+          <button
+            onClick={() => navigate(`/community/${adminCommunityId}/admin`)}
+            className={`flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg transition-colors ${
+              isActive(`/community/${adminCommunityId}/admin`) ? "text-emerald-600" : "text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            <Shield className="w-5 h-5" />
+            <span className="text-xs">Admin</span>
+          </button>
+        )}
         {user?.email === "kanwarsandhu@gmail.com" && adminTabs.map((tab) => (
           <button
             key={tab.path}
