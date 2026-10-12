@@ -19,7 +19,7 @@ export default function Layout() {
     const load = async () => {
       try {
         const data = await api.getMyCommunities();
-        const adminComm = data.find((c: any) => c.created_by === user?.id);
+        const adminComm = data.find((c: any) => c.role === 'admin');
         if (adminComm) setAdminCommunityId(adminComm.id);
       } catch {
         // ignore

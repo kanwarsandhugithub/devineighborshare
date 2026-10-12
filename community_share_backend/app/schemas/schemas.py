@@ -67,6 +67,7 @@ class CommunityOut(BaseModel):
     created_by: int
     created_at: Optional[str] = None
     member_count: Optional[int] = None
+    role: Optional[str] = None
 
 
 class CommunityJoin(BaseModel):

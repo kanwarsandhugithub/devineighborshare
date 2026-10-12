@@ -28,7 +28,7 @@ function formatPrice(price: number, unit: string) {
 
 interface Community {
   id: number; name: string; description: string; address: string;
-  join_code: string; member_count: number; created_by: number;
+  join_code: string; member_count: number; created_by: number; role?: string;
 }
 
 interface Item {
@@ -469,7 +469,7 @@ export default function HomePage() {
   const popularServices = [...filteredServices].sort((a, b) => (b.provider_avg_rating || 0) - (a.provider_avg_rating || 0)).slice(0, 9);
   const popularTasks = [...filteredTasks].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()).slice(0, 9);
   const primaryCommunity = communities.find((c) => c.id === selectedCommunityId) || (communities.length > 0 ? communities[0] : null);
-  const isAdmin = primaryCommunity ? (primaryCommunity.created_by === user?.id || user?.is_super_admin) : false;
+  const isAdmin = primaryCommunity ? (primaryCommunity.role === 'admin' || user?.is_super_admin) : false;
 
   return (
     <div className="p-4 max-w-2xl mx-auto">

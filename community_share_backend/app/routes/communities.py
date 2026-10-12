@@ -82,7 +82,8 @@ async def join_community(data: CommunityJoin, current_user_id: int = Depends(get
 async def get_my_communities(current_user_id: int = Depends(get_current_user_id)):
     with get_db() as db:
         rows = db.execute(
-            """SELECT c.*, (SELECT COUNT(*) FROM community_members WHERE community_id = c.id) as member_count
+            """SELECT c.*, cm.role,
+                      (SELECT COUNT(*) FROM community_members WHERE community_id = c.id) as member_count
                FROM communities c
                JOIN community_members cm ON cm.community_id = c.id
                WHERE cm.user_id = ?
@@ -94,7 +95,7 @@ async def get_my_communities(current_user_id: int = Depends(get_current_user_id)
             id=r["id"], name=r["name"], description=r["description"],
             address=r["address"], join_code=r["join_code"],
             created_by=r["created_by"], created_at=r["created_at"],
-            member_count=r["member_count"],
+            member_count=r["member_count"], role=r["role"],
         )
         for r in rows
     ]
