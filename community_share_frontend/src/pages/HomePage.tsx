@@ -28,7 +28,7 @@ function formatPrice(price: number, unit: string) {
 
 interface Community {
   id: number; name: string; description: string; address: string;
-  join_code: string; member_count: number;
+  join_code: string; member_count: number; created_by: number;
 }
 
 interface Item {
@@ -442,6 +442,7 @@ export default function HomePage() {
   const popularServices = [...filteredServices].sort((a, b) => (b.provider_avg_rating || 0) - (a.provider_avg_rating || 0)).slice(0, 9);
   const popularTasks = [...filteredTasks].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()).slice(0, 9);
   const primaryCommunity = communities.find((c) => c.id === selectedCommunityId) || (communities.length > 0 ? communities[0] : null);
+  const isAdmin = primaryCommunity ? (primaryCommunity.created_by === user?.id || user?.is_super_admin) : false;
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
@@ -457,6 +458,7 @@ export default function HomePage() {
               </button>
               <p className="text-gray-500 text-sm flex items-center gap-1">
                 <Users className="w-3 h-3" /> {primaryCommunity.member_count} members · Hi, {user?.full_name}!
+                {isAdmin && <Badge className="ml-1 bg-amber-100 text-amber-700 text-[10px] hover:bg-amber-100">Admin</Badge>}
               </p>
             </div>
           ) : (
@@ -559,6 +561,20 @@ export default function HomePage() {
           </Dialog>
         </div>
       </div>
+
+      {primaryCommunity && isAdmin && (
+        <Card className="mb-4 bg-amber-50 border-amber-200">
+          <CardContent className="p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-amber-600" />
+              <span className="text-sm font-medium text-amber-900">You are an admin of {primaryCommunity.name}</span>
+            </div>
+            <Button size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => navigate(`/community/${primaryCommunity.id}`)}>
+              Manage
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {loading ? (
         <div className="text-center text-gray-400 py-12">Loading...</div>
