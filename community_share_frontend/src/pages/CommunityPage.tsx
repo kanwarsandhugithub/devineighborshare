@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Plus, Package, Wrench, Handshake, MessageSquare, Send, ImagePlus, X, ChevronLeft, ChevronRight, Edit, Search, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Package, Wrench, Handshake, MessageSquare, Send, ImagePlus, X, ChevronLeft, ChevronRight, Edit, Search, Star, Trash2, Users, Shield } from "lucide-react";
 import TasksTab from "./TasksTab";
 
 interface Item {
@@ -35,6 +35,8 @@ interface Community {
   id: number; name: string; description: string; address: string;
   join_code: string; member_count: number;
 }
+
+interface Member { id: number; full_name: string; email: string; avatar_url?: string; role: string; joined_at: string; }
 
 const ITEM_CATEGORIES = ["tools", "electronics", "outdoor", "kitchen", "sports", "other"];
 const SERVICE_CATEGORIES = ["transportation", "handyman", "cleaning", "tutoring", "pet care", "other"];
@@ -99,6 +101,7 @@ export default function CommunityPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [activeTab, setActiveTab] = useState("items");
 
   // Dialog states
@@ -154,16 +157,18 @@ export default function CommunityPage() {
 
   const loadData = async () => {
     try {
-      const [comm, itemsData, servicesData, discussionsData] = await Promise.all([
+      const [comm, itemsData, servicesData, discussionsData, membersData] = await Promise.all([
         api.getCommunity(communityId),
         api.getCommunityItems(communityId, itemCategoryFilter || undefined, itemSearch || undefined),
         api.getCommunityServices(communityId, serviceCategoryFilter || undefined, serviceSearch || undefined),
         api.getCommunityDiscussions(communityId),
+        api.getCommunityMembers(communityId),
       ]);
       setCommunity(comm);
       setItems(itemsData);
       setServices(servicesData);
       setDiscussions(discussionsData);
+      setMembers(membersData);
     } catch {
       // ignore
     }
@@ -344,6 +349,7 @@ export default function CommunityPage() {
   };
 
   if (!community) return <div className="p-4 text-center text-gray-400">Loading...</div>;
+  const isAdmin = user?.is_super_admin || members.some((m) => m.id === user?.id && m.role === 'admin');
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
@@ -351,16 +357,24 @@ export default function CommunityPage() {
         <Button variant="ghost" size="sm" onClick={() => navigate("/")}><ArrowLeft className="w-4 h-4" /></Button>
         <div>
           <h1 className="text-xl font-bold">{community.name}</h1>
-          <p className="text-xs text-gray-400">{community.member_count} members · Code: {community.join_code}</p>
+          <p className="text-xs text-gray-400 flex items-center gap-1">
+            {community.member_count} members · Code: {community.join_code}
+            {isAdmin && (
+              <span className="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px] font-medium flex items-center gap-1">
+                <Shield className="w-3 h-3" /> Admin
+              </span>
+            )}
+          </p>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="items" className="text-xs"><Package className="w-3 h-3 mr-1" /> Items</TabsTrigger>
           <TabsTrigger value="services" className="text-xs"><Wrench className="w-3 h-3 mr-1" /> Services</TabsTrigger>
           <TabsTrigger value="help" className="text-xs"><Handshake className="w-3 h-3 mr-1" /> Help</TabsTrigger>
           <TabsTrigger value="community" className="text-xs"><MessageSquare className="w-3 h-3 mr-1" /> Community</TabsTrigger>
+          <TabsTrigger value="members" className="text-xs"><Users className="w-3 h-3 mr-1" /> Members</TabsTrigger>
         </TabsList>
 
         {/* ITEMS TAB */}
@@ -701,6 +715,45 @@ export default function CommunityPage() {
         <TabsContent value="help" className="space-y-3 mt-4">
           <TasksTab communityId={communityId} />
         </TabsContent>
+
+        {/* MEMBERS TAB */}
+        <TabsContent value="members" className="space-y-3 mt-4">
+          <div className="flex justify-between items-center">
+            <h2 className="font-semibold text-gray-700">Members</h2>
+            {isAdmin && (
+              <span className="text-xs text-amber-600 font-medium flex items-center gap-1">
+                <Shield className="w-3 h-3" /> Community Admin
+              </span>
+            )}
+          </div>
+          {members.length === 0 ? (
+            <Card className="text-center py-8"><CardContent><p className="text-gray-400">No members found</p></CardContent></Card>
+          ) : (
+            <div className="space-y-2">
+              {members.map((member) => (
+                <Card key={member.id}>
+                  <CardContent className="p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {member.avatar_url ? (
+                        <img src={member.avatar_url} alt={member.full_name} className="w-10 h-10 rounded-full object-cover" />
+                      ) : (
+                        <span className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm">{member.full_name?.charAt(0)?.toUpperCase()}</span>
+                      )}
+                      <div>
+                        <p className="font-medium text-sm">{member.full_name} {member.id === user?.id && <span className="text-gray-400 font-normal">(you)</span>}</p>
+                        <p className="text-xs text-gray-400">{member.email}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      {member.role === 'admin' && <Badge className="bg-amber-100 text-amber-700 text-[10px] mb-1">Admin</Badge>}
+                      <p className="text-xs text-gray-400">Joined {new Date(member.joined_at).toLocaleDateString()}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
 
       {/* Item Detail Dialog */}
@@ -750,6 +803,10 @@ export default function CommunityPage() {
                       <Trash2 className="w-4 h-4 mr-1" /> Delete
                     </Button>
                   </>
+                ) : isAdmin ? (
+                  <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50" onClick={() => { setShowItemDetail(false); handleDeleteItem(selectedItem.id); }}>
+                    <Trash2 className="w-4 h-4 mr-1" /> Delete as Admin
+                  </Button>
                 ) : (
                   <>
                     <Button variant="outline" className="flex-1" onClick={() => { setShowItemDetail(false); handleMessage(selectedItem.owner_id); }}>
@@ -808,6 +865,10 @@ export default function CommunityPage() {
                       <Trash2 className="w-4 h-4 mr-1" /> Delete
                     </Button>
                   </>
+                ) : isAdmin ? (
+                  <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50" onClick={() => { setShowServiceDetail(false); handleDeleteService(selectedService.id); }}>
+                    <Trash2 className="w-4 h-4 mr-1" /> Delete as Admin
+                  </Button>
                 ) : (
                   <>
                     <Button variant="outline" className="flex-1" onClick={() => { setShowServiceDetail(false); handleMessage(selectedService.provider_id); }}>
