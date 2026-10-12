@@ -2,7 +2,7 @@ import re
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from app.schemas.schemas import CommunityCreate, CommunityOut, CommunityJoin, CommunityUpdate
-from app.utils.auth import get_current_user_id, get_current_user_email
+from app.utils.auth import get_current_user_id, get_current_user_email, is_community_admin, is_super_admin
 from app.database import get_db
 
 router = APIRouter(prefix="/api/communities", tags=["communities"])
@@ -126,14 +126,10 @@ async def get_all_communities(current_user_id: int = Depends(get_current_user_id
 
 @router.delete("/{community_id}")
 async def delete_community(community_id: int, current_user_id: int = Depends(get_current_user_id)):
-    """Super-admin only: delete a community and all its related data."""
+    """Super-admin or community admin: delete a community and all its related data."""
     with get_db() as db:
-        is_super = db.execute(
-            "SELECT is_super_admin FROM users WHERE id = ?",
-            (current_user_id,),
-        ).fetchone()
-        if not is_super or not is_super["is_super_admin"]:
-            raise HTTPException(status_code=403, detail="Super admin access required")
+        if not is_super_admin(db, current_user_id) and not is_community_admin(db, current_user_id, community_id):
+            raise HTTPException(status_code=403, detail="Super admin or community admin access required")
         community = db.execute("SELECT * FROM communities WHERE id = ?", (community_id,)).fetchone()
         if not community:
             raise HTTPException(status_code=404, detail="Community not found")
@@ -141,6 +137,7 @@ async def delete_community(community_id: int, current_user_id: int = Depends(get
         db.execute("DELETE FROM community_members WHERE community_id = ?", (community_id,))
         db.execute("DELETE FROM items WHERE community_id = ?", (community_id,))
         db.execute("DELETE FROM services WHERE community_id = ?", (community_id,))
+        db.execute("DELETE FROM task_requests WHERE community_id = ?", (community_id,))
         db.execute("DELETE FROM discussions WHERE community_id = ?", (community_id,))
         db.execute("DELETE FROM communities WHERE id = ?", (community_id,))
     return {"detail": "Community deleted"}
@@ -148,14 +145,10 @@ async def delete_community(community_id: int, current_user_id: int = Depends(get
 
 @router.put("/{community_id}")
 async def update_community(community_id: int, data: CommunityUpdate, current_user_id: int = Depends(get_current_user_id)):
-    """Super-admin only: update community join code."""
+    """Super-admin or community admin: update community join code."""
     with get_db() as db:
-        is_super = db.execute(
-            "SELECT is_super_admin FROM users WHERE id = ?",
-            (current_user_id,),
-        ).fetchone()
-        if not is_super or not is_super["is_super_admin"]:
-            raise HTTPException(status_code=403, detail="Super admin access required")
+        if not is_super_admin(db, current_user_id) and not is_community_admin(db, current_user_id, community_id):
+            raise HTTPException(status_code=403, detail="Super admin or community admin access required")
         
         # Check if join code already exists
         existing = db.execute("SELECT id FROM communities WHERE join_code = ? AND id != ?", (data.join_code, community_id)).fetchone()

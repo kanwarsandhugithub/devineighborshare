@@ -59,3 +59,19 @@ def get_current_user_email(token: str = Depends(oauth2_scheme)) -> str:
         return email
     except JWTError:
         raise credentials_exception
+
+
+def is_community_admin(db, user_id: int, community_id: int) -> bool:
+    member = db.execute(
+        "SELECT role FROM community_members WHERE community_id = ? AND user_id = ? AND role = 'admin'",
+        (community_id, user_id),
+    ).fetchone()
+    return member is not None
+
+
+def is_super_admin(db, user_id: int) -> bool:
+    user = db.execute(
+        "SELECT is_super_admin FROM users WHERE id = ?",
+        (user_id,),
+    ).fetchone()
+    return user is not None and bool(user["is_super_admin"])

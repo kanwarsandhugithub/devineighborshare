@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from app.schemas.schemas import DiscussionCreate, DiscussionOut, CommentCreate, CommentOut
-from app.utils.auth import get_current_user_id
+from app.utils.auth import get_current_user_id, is_community_admin
 from app.utils.notifications import notify_community
 from app.database import get_db
 
@@ -84,8 +84,8 @@ async def delete_discussion(discussion_id: int, current_user_id: int = Depends(g
         d = db.execute("SELECT * FROM discussions WHERE id = ?", (discussion_id,)).fetchone()
         if not d:
             raise HTTPException(status_code=404, detail="Discussion not found")
-        if d["author_id"] != current_user_id:
-            raise HTTPException(status_code=403, detail="Not the author")
+        if d["author_id"] != current_user_id and not is_community_admin(db, current_user_id, d["community_id"]):
+            raise HTTPException(status_code=403, detail="Not the author or community admin")
         db.execute("DELETE FROM discussions WHERE id = ?", (discussion_id,))
     return {"status": "deleted"}
 

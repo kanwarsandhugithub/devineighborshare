@@ -4,6 +4,7 @@ from app.schemas.schemas import ItemCreate, ItemUpdate, ItemOut, RentalRequestCr
 from app.utils.auth import get_current_user_id
 from app.utils.email import send_rental_request_email, send_rental_status_email
 from app.utils.notifications import create_notification, notify_community
+from app.utils.auth import is_community_admin
 from app.database import get_db
 
 router = APIRouter(prefix="/api/items", tags=["items"])
@@ -183,8 +184,8 @@ async def delete_item(item_id: int, current_user_id: int = Depends(get_current_u
         item = db.execute("SELECT * FROM items WHERE id = ?", (item_id,)).fetchone()
         if not item:
             raise HTTPException(status_code=404, detail="Item not found")
-        if item["owner_id"] != current_user_id:
-            raise HTTPException(status_code=403, detail="Not the owner")
+        if item["owner_id"] != current_user_id and not is_community_admin(db, current_user_id, item["community_id"]):
+            raise HTTPException(status_code=403, detail="Not the owner or community admin")
         
         # Cascade delete related data
         db.execute("DELETE FROM reviews WHERE item_id = ?", (item_id,))

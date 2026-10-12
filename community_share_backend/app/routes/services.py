@@ -4,6 +4,7 @@ from app.schemas.schemas import ServiceCreate, ServiceUpdate, ServiceOut, Servic
 from app.utils.auth import get_current_user_id
 from app.utils.email import send_booking_request_email, send_booking_status_email
 from app.utils.notifications import create_notification, notify_community
+from app.utils.auth import is_community_admin
 from app.database import get_db
 
 router = APIRouter(prefix="/api/services", tags=["services"])
@@ -144,8 +145,8 @@ async def delete_service(service_id: int, current_user_id: int = Depends(get_cur
         svc = db.execute("SELECT * FROM services WHERE id = ?", (service_id,)).fetchone()
         if not svc:
             raise HTTPException(status_code=404, detail="Service not found")
-        if svc["provider_id"] != current_user_id:
-            raise HTTPException(status_code=403, detail="Not the provider")
+        if svc["provider_id"] != current_user_id and not is_community_admin(db, current_user_id, svc["community_id"]):
+            raise HTTPException(status_code=403, detail="Not the provider or community admin")
         
         # Cascade delete related data
         db.execute("DELETE FROM reviews WHERE service_id = ?", (service_id,))

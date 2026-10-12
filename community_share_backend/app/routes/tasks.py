@@ -8,7 +8,7 @@ from app.schemas.schemas import (
     TaskOfferUpdate,
     TaskOfferOut,
 )
-from app.utils.auth import get_current_user_id
+from app.utils.auth import get_current_user_id, is_community_admin
 from app.utils.notifications import notify_community
 from app.database import get_db
 
@@ -158,8 +158,8 @@ async def delete_task(task_id: int, current_user_id: int = Depends(get_current_u
         task = db.execute("SELECT * FROM task_requests WHERE id = ?", (task_id,)).fetchone()
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
-        if task["requester_id"] != current_user_id:
-            raise HTTPException(status_code=403, detail="Not the requester")
+        if task["requester_id"] != current_user_id and not is_community_admin(db, current_user_id, task["community_id"]):
+            raise HTTPException(status_code=403, detail="Not the requester or community admin")
         db.execute("DELETE FROM task_requests WHERE id = ?", (task_id,))
     return {"message": "Task deleted"}
 
