@@ -2,7 +2,7 @@ import re
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from app.schemas.schemas import CommunityCreate, CommunityOut, CommunityJoin, CommunityUpdate
-from app.utils.auth import get_current_user_id
+from app.utils.auth import get_current_user_id, get_current_user_email
 from app.database import get_db
 
 router = APIRouter(prefix="/api/communities", tags=["communities"])
