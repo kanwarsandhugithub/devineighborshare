@@ -5,6 +5,9 @@ import { useAuth } from "../contexts/AuthContext";
 import { api } from "../api";
 import NotificationBell from "./NotificationBell";
 
+declare const __BUILD_VERSION__: string;
+declare const __BUILD_TIME__: string;
+
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -51,6 +54,9 @@ export default function Layout() {
         <Link to="/terms" className="hover:text-emerald-600 hover:underline">Terms of Service</Link>
         <span>|</span>
         <Link to="/privacy" className="hover:text-emerald-600 hover:underline">Privacy Policy</Link>
+      </div>
+      <div className="text-center text-[10px] text-gray-300 pb-2 max-w-2xl mx-auto">
+        Build {__BUILD_VERSION__} · {new Date(__BUILD_TIME__).toLocaleString()}
       </div>
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around py-2 max-w-2xl mx-auto">
         {tabs.map((tab) => (
