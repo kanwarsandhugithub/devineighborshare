@@ -244,3 +244,12 @@ def init_db():
             UNIQUE(community_id, user_id)
         );
         """)
+        db.execute("""
+        CREATE TABLE IF NOT EXISTS community_bans (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            community_id INTEGER REFERENCES communities(id) ON DELETE CASCADE,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            banned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(community_id, user_id)
+        );
+        """)

@@ -65,6 +65,12 @@ async def join_community(data: CommunityJoin, current_user_id: int = Depends(get
         ).fetchone()
         if pending:
             raise HTTPException(status_code=400, detail="Join request already pending")
+        banned = db.execute(
+            "SELECT id FROM community_bans WHERE community_id = ? AND user_id = ?",
+            (community["id"], current_user_id),
+        ).fetchone()
+        if banned:
+            raise HTTPException(status_code=403, detail="You are not allowed to join this community")
         db.execute(
             "INSERT INTO community_join_requests (community_id, user_id) VALUES (?, ?)",
             (community["id"], current_user_id),
@@ -164,6 +170,12 @@ async def request_to_join(data: dict, current_user_id: int = Depends(get_current
         ).fetchone()
         if pending:
             raise HTTPException(status_code=400, detail="Join request already pending")
+        banned = db.execute(
+            "SELECT id FROM community_bans WHERE community_id = ? AND user_id = ?",
+            (community_id, current_user_id),
+        ).fetchone()
+        if banned:
+            raise HTTPException(status_code=403, detail="You are not allowed to join this community")
         db.execute(
             "INSERT INTO community_join_requests (community_id, user_id, message) VALUES (?, ?, ?)",
             (community_id, current_user_id, message),
@@ -201,6 +213,12 @@ async def approve_join_request(request_id: int, current_user_id: int = Depends(g
             "SELECT id FROM community_members WHERE community_id = ? AND user_id = ?",
             (req["community_id"], req["user_id"]),
         ).fetchone()
+        banned = db.execute(
+            "SELECT id FROM community_bans WHERE community_id = ? AND user_id = ?",
+            (req["community_id"], req["user_id"]),
+        ).fetchone()
+        if banned:
+            raise HTTPException(status_code=403, detail="User is not allowed to join this community")
         if not existing:
             db.execute(
                 "INSERT INTO community_members (community_id, user_id, role) VALUES (?, ?, 'member')",
@@ -232,6 +250,58 @@ async def remove_member(community_id: int, user_id: int, current_user_id: int = 
             (community_id, user_id),
         )
     return {"detail": "Member removed"}
+
+
+@router.post("/{community_id}/members/{user_id}/ban")
+async def ban_member(community_id: int, user_id: int, current_user_id: int = Depends(get_current_user_id)):
+    """Disallow a user from joining or being part of a community."""
+    with get_db() as db:
+        if not is_super_admin(db, current_user_id) and not is_community_admin(db, current_user_id, community_id):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        if user_id == current_user_id:
+            raise HTTPException(status_code=400, detail="Cannot ban yourself")
+        target = db.execute("SELECT is_super_admin FROM users WHERE id = ?", (user_id,)).fetchone()
+        if target and target["is_super_admin"]:
+            raise HTTPException(status_code=403, detail="Cannot ban a super admin")
+        db.execute(
+            "DELETE FROM community_members WHERE community_id = ? AND user_id = ?",
+            (community_id, user_id),
+        )
+        db.execute(
+            "UPDATE community_join_requests SET status = 'declined' WHERE community_id = ? AND user_id = ? AND status = 'pending'",
+            (community_id, user_id),
+        )
+        db.execute(
+            "INSERT OR IGNORE INTO community_bans (community_id, user_id) VALUES (?, ?)",
+            (community_id, user_id),
+        )
+    return {"detail": "Member disallowed"}
+
+
+@router.delete("/{community_id}/banned/{user_id}")
+async def unban_member(community_id: int, user_id: int, current_user_id: int = Depends(get_current_user_id)):
+    with get_db() as db:
+        if not is_super_admin(db, current_user_id) and not is_community_admin(db, current_user_id, community_id):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        db.execute(
+            "DELETE FROM community_bans WHERE community_id = ? AND user_id = ?",
+            (community_id, user_id),
+        )
+    return {"detail": "Member allowed"}
+
+
+@router.get("/{community_id}/banned")
+async def get_banned_members(community_id: int, current_user_id: int = Depends(get_current_user_id)):
+    with get_db() as db:
+        if not is_super_admin(db, current_user_id) and not is_community_admin(db, current_user_id, community_id):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        rows = db.execute(
+            """SELECT u.id, u.full_name, u.email, u.avatar_url, cb.banned_at
+               FROM users u JOIN community_bans cb ON cb.user_id = u.id
+               WHERE cb.community_id = ? ORDER BY cb.banned_at DESC""",
+            (community_id,),
+        ).fetchall()
+    return [dict(r) for r in rows]
 
 
 @router.delete("/{community_id}")

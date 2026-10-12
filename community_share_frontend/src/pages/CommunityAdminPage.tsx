@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Shield, Users, Trash2, Save, UserPlus, Check, X } from "lucide-react";
+import { ArrowLeft, Shield, Users, Trash2, Save, UserPlus, Check, X, Ban, Undo2 } from "lucide-react";
 
 interface Member { id: number; full_name: string; email: string; avatar_url?: string; role: string; joined_at: string; }
 
@@ -23,6 +23,7 @@ export default function CommunityAdminPage() {
   const { user } = useAuth();
   const [community, setCommunity] = useState<Community | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
+  const [banned, setBanned] = useState<Member[]>([]);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [joinCode, setJoinCode] = useState("");
@@ -40,14 +41,16 @@ export default function CommunityAdminPage() {
     setLoading(true);
     setError("");
     try {
-      const [comm, membersData, requestsData] = await Promise.all([
+      const [comm, membersData, requestsData, bannedData] = await Promise.all([
         api.getCommunity(communityId),
         api.getCommunityMembers(communityId),
         api.getJoinRequests(communityId),
+        api.getBannedMembers(communityId),
       ]);
       setCommunity(comm);
       setJoinCode(comm.join_code);
       setMembers(membersData);
+      setBanned(bannedData);
       setJoinRequests(requestsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load community");
@@ -100,6 +103,28 @@ export default function CommunityAdminPage() {
       loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to remove member");
+    }
+  };
+
+  const handleDisallow = async (user_id: number, full_name: string) => {
+    if (!confirm(`Disallow ${full_name} from this community? They will not be able to join again.`)) return;
+    try {
+      await api.disallowMember(communityId, user_id);
+      setSuccess("Member disallowed");
+      loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to disallow member");
+    }
+  };
+
+  const handleAllow = async (user_id: number, full_name: string) => {
+    if (!confirm(`Allow ${full_name} to join this community again?`)) return;
+    try {
+      await api.allowMember(communityId, user_id);
+      setSuccess("Member allowed");
+      loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to allow member");
     }
   };
 
@@ -203,9 +228,14 @@ export default function CommunityAdminPage() {
                 <div className="text-right flex items-center gap-2">
                   {member.role === 'admin' && <Badge className="bg-amber-100 text-amber-700 text-[10px]">Admin</Badge>}
                   {member.id !== user?.id && (
-                    <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 h-7 px-2" onClick={() => handleRemoveMember(member.id, member.full_name)}>
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
+                    <>
+                      <Button size="sm" variant="outline" className="text-amber-600 border-amber-200 hover:bg-amber-50 h-7 px-2" title="Disallow" onClick={() => handleDisallow(member.id, member.full_name)}>
+                        <Ban className="w-3 h-3" />
+                      </Button>
+                      <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 h-7 px-2" title="Remove" onClick={() => handleRemoveMember(member.id, member.full_name)}>
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
@@ -213,6 +243,34 @@ export default function CommunityAdminPage() {
           </div>
         </CardContent>
       </Card>
+
+      {banned.length > 0 && (
+        <Card className="mb-4 border-amber-200">
+          <CardContent className="p-4 space-y-3">
+            <h2 className="font-semibold text-amber-700 flex items-center gap-2"><Ban className="w-4 h-4" /> Disallowed Members</h2>
+            <div className="space-y-2">
+              {banned.map((member) => (
+                <div key={member.id} className="flex items-center justify-between p-2 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    {member.avatar_url ? (
+                      <img src={member.avatar_url} alt={member.full_name} className="w-8 h-8 rounded-full object-cover" />
+                    ) : (
+                      <span className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">{member.full_name?.charAt(0)?.toUpperCase()}</span>
+                    )}
+                    <div>
+                      <p className="text-sm font-medium">{member.full_name}</p>
+                      <p className="text-xs text-gray-400">{member.email}</p>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline" className="text-emerald-600 border-emerald-200 hover:bg-emerald-50 h-7 px-2" onClick={() => handleAllow(member.id, member.full_name)}>
+                    <Undo2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="border-red-200">
         <CardContent className="p-4 space-y-3">
