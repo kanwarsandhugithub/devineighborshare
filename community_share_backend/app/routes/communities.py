@@ -59,12 +59,6 @@ async def join_community(data: CommunityJoin, current_user_id: int = Depends(get
         ).fetchone()
         if existing:
             raise HTTPException(status_code=400, detail="Already a member")
-        pending = db.execute(
-            "SELECT id FROM community_join_requests WHERE community_id = ? AND user_id = ? AND status = 'pending'",
-            (community["id"], current_user_id),
-        ).fetchone()
-        if pending:
-            raise HTTPException(status_code=400, detail="Join request already pending")
         banned = db.execute(
             "SELECT id FROM community_bans WHERE community_id = ? AND user_id = ?",
             (community["id"], current_user_id),
@@ -72,10 +66,14 @@ async def join_community(data: CommunityJoin, current_user_id: int = Depends(get
         if banned:
             raise HTTPException(status_code=403, detail="You are not allowed to join this community")
         db.execute(
-            "INSERT INTO community_join_requests (community_id, user_id) VALUES (?, ?)",
+            "UPDATE community_join_requests SET status = 'approved' WHERE community_id = ? AND user_id = ? AND status = 'pending'",
             (community["id"], current_user_id),
         )
-    return {"detail": "Join request sent. Waiting for admin approval."}
+        db.execute(
+            "INSERT OR IGNORE INTO community_members (community_id, user_id, role) VALUES (?, ?, 'member')",
+            (community["id"], current_user_id),
+        )
+    return {"detail": "Joined community"}
 
 
 @router.get("/my", response_model=List[CommunityOut])
