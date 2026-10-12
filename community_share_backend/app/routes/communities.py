@@ -304,6 +304,40 @@ async def get_banned_members(community_id: int, current_user_id: int = Depends(g
     return [dict(r) for r in rows]
 
 
+@router.post("/{community_id}/members/{user_id}/admin")
+async def promote_member_to_admin(community_id: int, user_id: int, current_user_id: int = Depends(get_current_user_id)):
+    """Promote a community member to admin."""
+    with get_db() as db:
+        if not is_super_admin(db, current_user_id) and not is_community_admin(db, current_user_id, community_id):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        member = db.execute(
+            "SELECT id FROM community_members WHERE community_id = ? AND user_id = ?",
+            (community_id, user_id),
+        ).fetchone()
+        if not member:
+            raise HTTPException(status_code=404, detail="Member not found")
+        db.execute(
+            "UPDATE community_members SET role = 'admin' WHERE community_id = ? AND user_id = ?",
+            (community_id, user_id),
+        )
+    return {"detail": "Member promoted to admin"}
+
+
+@router.delete("/{community_id}/members/{user_id}/admin")
+async def demote_member_from_admin(community_id: int, user_id: int, current_user_id: int = Depends(get_current_user_id)):
+    """Demote an admin back to regular member."""
+    with get_db() as db:
+        if not is_super_admin(db, current_user_id) and not is_community_admin(db, current_user_id, community_id):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        if user_id == current_user_id:
+            raise HTTPException(status_code=400, detail="Cannot demote yourself")
+        db.execute(
+            "UPDATE community_members SET role = 'member' WHERE community_id = ? AND user_id = ? AND role = 'admin'",
+            (community_id, user_id),
+        )
+    return {"detail": "Admin demoted to member"}
+
+
 @router.delete("/{community_id}")
 async def delete_community(community_id: int, current_user_id: int = Depends(get_current_user_id)):
     """Super-admin or community admin: delete a community and all its related data."""

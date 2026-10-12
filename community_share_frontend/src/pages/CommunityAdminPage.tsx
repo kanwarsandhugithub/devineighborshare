@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Shield, Users, Trash2, Save, UserPlus, Check, X, Ban, Undo2 } from "lucide-react";
+import { ArrowLeft, Shield, Users, User, UserCog, Trash2, Save, UserPlus, Check, X, Ban, Undo2 } from "lucide-react";
 
 interface Member { id: number; full_name: string; email: string; avatar_url?: string; role: string; joined_at: string; }
 
@@ -128,6 +128,28 @@ export default function CommunityAdminPage() {
     }
   };
 
+  const handlePromote = async (user_id: number, full_name: string) => {
+    if (!confirm(`Make ${full_name} an admin of this community?`)) return;
+    try {
+      await api.promoteToAdmin(communityId, user_id);
+      setSuccess("Member promoted to admin");
+      loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to promote member");
+    }
+  };
+
+  const handleDemote = async (user_id: number, full_name: string) => {
+    if (!confirm(`Remove admin privileges from ${full_name}?`)) return;
+    try {
+      await api.demoteFromAdmin(communityId, user_id);
+      setSuccess("Admin demoted to member");
+      loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to demote member");
+    }
+  };
+
   const handleDelete = async () => {
     if (!confirm("Are you sure? This will delete the community and all its data. This cannot be undone.")) return;
     try {
@@ -229,6 +251,15 @@ export default function CommunityAdminPage() {
                   {member.role === 'admin' && <Badge className="bg-amber-100 text-amber-700 text-[10px]">Admin</Badge>}
                   {member.id !== user?.id && (
                     <>
+                      {member.role !== 'admin' ? (
+                        <Button size="sm" variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50 h-7 px-2" title="Make admin" onClick={() => handlePromote(member.id, member.full_name)}>
+                          <UserCog className="w-3 h-3" />
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline" className="text-gray-600 border-gray-200 hover:bg-gray-50 h-7 px-2" title="Demote to member" onClick={() => handleDemote(member.id, member.full_name)}>
+                          <User className="w-3 h-3" />
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline" className="text-amber-600 border-amber-200 hover:bg-amber-50 h-7 px-2" title="Disallow" onClick={() => handleDisallow(member.id, member.full_name)}>
                         <Ban className="w-3 h-3" />
                       </Button>

@@ -88,6 +88,10 @@ export const api = {
     request(`/api/communities/${community_id}/members/${user_id}/ban`, { method: "POST" }),
   allowMember: (community_id: number, user_id: number) =>
     request(`/api/communities/${community_id}/banned/${user_id}`, { method: "DELETE" }),
+  promoteToAdmin: (community_id: number, user_id: number) =>
+    request(`/api/communities/${community_id}/members/${user_id}/admin`, { method: "POST" }),
+  demoteFromAdmin: (community_id: number, user_id: number) =>
+    request(`/api/communities/${community_id}/members/${user_id}/admin`, { method: "DELETE" }),
 
   // Items
   createItem: (data: { title: string; description: string; category: string; price_per_day: number; price_unit: string; community_id: number; image_url?: string; image_urls?: string[] }) =>
