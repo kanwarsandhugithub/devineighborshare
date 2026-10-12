@@ -47,7 +47,7 @@ async def create_community(data: CommunityCreate, current_user_id: int = Depends
     )
 
 
-@router.post("/join", response_model=CommunityOut)
+@router.post("/join")
 async def join_community(data: CommunityJoin, current_user_id: int = Depends(get_current_user_id)):
     with get_db() as db:
         community = db.execute("SELECT * FROM communities WHERE join_code = ?", (data.join_code,)).fetchone()
@@ -59,19 +59,17 @@ async def join_community(data: CommunityJoin, current_user_id: int = Depends(get
         ).fetchone()
         if existing:
             raise HTTPException(status_code=400, detail="Already a member")
+        pending = db.execute(
+            "SELECT id FROM community_join_requests WHERE community_id = ? AND user_id = ? AND status = 'pending'",
+            (community["id"], current_user_id),
+        ).fetchone()
+        if pending:
+            raise HTTPException(status_code=400, detail="Join request already pending")
         db.execute(
-            "INSERT INTO community_members (community_id, user_id) VALUES (?, ?)",
+            "INSERT INTO community_join_requests (community_id, user_id) VALUES (?, ?)",
             (community["id"], current_user_id),
         )
-        count = db.execute(
-            "SELECT COUNT(*) as cnt FROM community_members WHERE community_id = ?", (community["id"],)
-        ).fetchone()["cnt"]
-    return CommunityOut(
-        id=community["id"], name=community["name"], description=community["description"],
-        address=community["address"], join_code=community["join_code"],
-        created_by=community["created_by"], created_at=community["created_at"],
-        member_count=count,
-    )
+    return {"detail": "Join request sent. Waiting for admin approval."}
 
 
 @router.get("/my", response_model=List[CommunityOut])
@@ -122,6 +120,106 @@ async def get_all_communities(current_user_id: int = Depends(get_current_user_id
         )
         for r in rows
     ]
+
+
+@router.get("/search")
+async def search_communities(q: str = "", current_user_id: int = Depends(get_current_user_id)):
+    """Search public communities by name, description, or address."""
+    with get_db() as db:
+        query = f"%{q}%"
+        rows = db.execute(
+            """SELECT c.id, c.name, c.description, c.address,
+                      (SELECT COUNT(*) FROM community_members WHERE community_id = c.id) as member_count
+               FROM communities c
+               WHERE c.name LIKE ? OR c.description LIKE ? OR c.address LIKE ?
+               ORDER BY c.name""",
+            (query, query, query),
+        ).fetchall()
+    return [
+        {"id": r["id"], "name": r["name"], "description": r["description"],
+         "address": r["address"], "member_count": r["member_count"]}
+        for r in rows
+    ]
+
+
+@router.post("/request-join")
+async def request_to_join(data: dict, current_user_id: int = Depends(get_current_user_id)):
+    with get_db() as db:
+        community_id = data.get("community_id")
+        message = data.get("message", "")
+        if not community_id:
+            raise HTTPException(status_code=400, detail="Community ID required")
+        community = db.execute("SELECT * FROM communities WHERE id = ?", (community_id,)).fetchone()
+        if not community:
+            raise HTTPException(status_code=404, detail="Community not found")
+        existing = db.execute(
+            "SELECT id FROM community_members WHERE community_id = ? AND user_id = ?",
+            (community_id, current_user_id),
+        ).fetchone()
+        if existing:
+            raise HTTPException(status_code=400, detail="Already a member")
+        pending = db.execute(
+            "SELECT id FROM community_join_requests WHERE community_id = ? AND user_id = ? AND status = 'pending'",
+            (community_id, current_user_id),
+        ).fetchone()
+        if pending:
+            raise HTTPException(status_code=400, detail="Join request already pending")
+        db.execute(
+            "INSERT INTO community_join_requests (community_id, user_id, message) VALUES (?, ?, ?)",
+            (community_id, current_user_id, message),
+        )
+    return {"detail": "Join request sent. Waiting for admin approval."}
+
+
+@router.get("/{community_id}/join-requests")
+async def get_join_requests(community_id: int, current_user_id: int = Depends(get_current_user_id)):
+    """List pending join requests for a community (admin only)."""
+    with get_db() as db:
+        if not is_super_admin(db, current_user_id) and not is_community_admin(db, current_user_id, community_id):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        rows = db.execute(
+            """SELECT cjr.id, cjr.message, cjr.status, cjr.created_at,
+                      u.id as user_id, u.full_name, u.email, u.avatar_url
+               FROM community_join_requests cjr
+               JOIN users u ON u.id = cjr.user_id
+               WHERE cjr.community_id = ? AND cjr.status = 'pending'
+               ORDER BY cjr.created_at DESC""",
+            (community_id,),
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+@router.post("/join-requests/{request_id}/approve")
+async def approve_join_request(request_id: int, current_user_id: int = Depends(get_current_user_id)):
+    with get_db() as db:
+        req = db.execute("SELECT * FROM community_join_requests WHERE id = ?", (request_id,)).fetchone()
+        if not req:
+            raise HTTPException(status_code=404, detail="Join request not found")
+        if not is_super_admin(db, current_user_id) and not is_community_admin(db, current_user_id, req["community_id"]):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        existing = db.execute(
+            "SELECT id FROM community_members WHERE community_id = ? AND user_id = ?",
+            (req["community_id"], req["user_id"]),
+        ).fetchone()
+        if not existing:
+            db.execute(
+                "INSERT INTO community_members (community_id, user_id, role) VALUES (?, ?, 'member')",
+                (req["community_id"], req["user_id"]),
+            )
+        db.execute("UPDATE community_join_requests SET status = 'approved' WHERE id = ?", (request_id,))
+    return {"detail": "Request approved"}
+
+
+@router.post("/join-requests/{request_id}/decline")
+async def decline_join_request(request_id: int, current_user_id: int = Depends(get_current_user_id)):
+    with get_db() as db:
+        req = db.execute("SELECT * FROM community_join_requests WHERE id = ?", (request_id,)).fetchone()
+        if not req:
+            raise HTTPException(status_code=404, detail="Join request not found")
+        if not is_super_admin(db, current_user_id) and not is_community_admin(db, current_user_id, req["community_id"]):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        db.execute("UPDATE community_join_requests SET status = 'declined' WHERE id = ?", (request_id,))
+    return {"detail": "Request declined"}
 
 
 @router.delete("/{community_id}")

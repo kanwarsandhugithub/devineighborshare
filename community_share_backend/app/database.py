@@ -232,3 +232,15 @@ def init_db():
             pass
         # Ensure kanwarsandhu@gmail.com is super admin
         db.execute("UPDATE users SET is_super_admin = 1 WHERE email = 'kanwarsandhu@gmail.com'")
+
+        db.execute("""
+        CREATE TABLE IF NOT EXISTS community_join_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            community_id INTEGER REFERENCES communities(id) ON DELETE CASCADE,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            message TEXT DEFAULT '',
+            status TEXT DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(community_id, user_id)
+        );
+        """)

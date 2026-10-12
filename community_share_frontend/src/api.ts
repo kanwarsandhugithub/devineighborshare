@@ -63,6 +63,16 @@ export const api = {
     request("/api/communities/", { method: "POST", body: JSON.stringify(data) }),
   joinCommunity: (join_code: string) =>
     request("/api/communities/join", { method: "POST", body: JSON.stringify({ join_code }) }),
+  searchCommunities: (q: string) =>
+    request(`/api/communities/search?q=${encodeURIComponent(q)}`),
+  requestToJoin: (community_id: number, message?: string) =>
+    request("/api/communities/request-join", { method: "POST", body: JSON.stringify({ community_id, message }) }),
+  getJoinRequests: (community_id: number) =>
+    request(`/api/communities/${community_id}/join-requests`),
+  approveJoinRequest: (request_id: number) =>
+    request(`/api/communities/join-requests/${request_id}/approve`, { method: "POST" }),
+  declineJoinRequest: (request_id: number) =>
+    request(`/api/communities/join-requests/${request_id}/decline`, { method: "POST" }),
   getMyCommunities: () => request("/api/communities/my"),
   getAllCommunities: () => request("/api/communities/all"),
   deleteCommunity: (id: number) => request(`/api/communities/${id}`, { method: "DELETE" }),

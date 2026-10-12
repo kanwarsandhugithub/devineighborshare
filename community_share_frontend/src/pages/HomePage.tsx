@@ -107,8 +107,12 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
+  const [showFind, setShowFind] = useState(false);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
   const [joinCode, setJoinCode] = useState("");
+  const [findQuery, setFindQuery] = useState("");
+  const [findResults, setFindResults] = useState<{id: number; name: string; description: string; address: string; member_count: number}[]>([]);
+  const [findLoading, setFindLoading] = useState(false);
   const [newCommunity, setNewCommunity] = useState({ name: "", description: "", address: "" });
   const [error, setError] = useState("");
 
@@ -257,12 +261,35 @@ export default function HomePage() {
     e.preventDefault();
     setError("");
     try {
-      await api.joinCommunity(joinCode);
+      const res = await api.joinCommunity(joinCode);
       setShowJoin(false);
       setJoinCode("");
-      loadCommunities();
+      alert(res.detail);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to join");
+    }
+  };
+
+  const handleFindSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFindLoading(true);
+    try {
+      const data = await api.searchCommunities(findQuery);
+      setFindResults(data);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Search failed");
+    } finally {
+      setFindLoading(false);
+    }
+  };
+
+  const handleRequestToJoin = async (communityId: number) => {
+    try {
+      const res = await api.requestToJoin(communityId);
+      alert(res.detail);
+      setFindResults((prev) => prev.filter((c) => c.id !== communityId));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to request");
     }
   };
 
@@ -488,6 +515,38 @@ export default function HomePage() {
                 </div>
                 <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700">Join Community</Button>
               </form>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={showFind} onOpenChange={setShowFind}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm"><Search className="w-4 h-4 mr-1" /> Find</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Find a Community</DialogTitle></DialogHeader>
+              <form onSubmit={handleFindSearch} className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Search</Label>
+                  <Input value={findQuery} onChange={(e) => setFindQuery(e.target.value)} placeholder="Community name" required />
+                </div>
+                <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={findLoading}>Search</Button>
+              </form>
+              <div className="space-y-2 mt-4 max-h-60 overflow-y-auto">
+                {findResults.map((c) => (
+                  <Card key={c.id}>
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <p className="font-medium text-sm">{c.name}</p>
+                          <p className="text-xs text-gray-500">{c.member_count} members · {c.address}</p>
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => handleRequestToJoin(c.id)}>Request</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {!findLoading && findResults.length === 0 && findQuery && <p className="text-center text-gray-400 text-sm">No communities found</p>}
+              </div>
             </DialogContent>
           </Dialog>
 

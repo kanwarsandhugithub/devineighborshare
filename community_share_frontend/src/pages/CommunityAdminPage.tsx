@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Shield, Users, Trash2, Save } from "lucide-react";
+import { ArrowLeft, Shield, Users, Trash2, Save, UserPlus, Check, X } from "lucide-react";
 
 interface Member { id: number; full_name: string; email: string; avatar_url?: string; role: string; joined_at: string; }
 
@@ -23,6 +23,7 @@ export default function CommunityAdminPage() {
   const { user } = useAuth();
   const [community, setCommunity] = useState<Community | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
+  const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [joinCode, setJoinCode] = useState("");
   const [saving, setSaving] = useState(false);
@@ -39,13 +40,15 @@ export default function CommunityAdminPage() {
     setLoading(true);
     setError("");
     try {
-      const [comm, membersData] = await Promise.all([
+      const [comm, membersData, requestsData] = await Promise.all([
         api.getCommunity(communityId),
         api.getCommunityMembers(communityId),
+        api.getJoinRequests(communityId),
       ]);
       setCommunity(comm);
       setJoinCode(comm.join_code);
       setMembers(membersData);
+      setJoinRequests(requestsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load community");
     } finally {
@@ -66,6 +69,26 @@ export default function CommunityAdminPage() {
       setError(err instanceof Error ? err.message : "Failed to update join code");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleApprove = async (requestId: number) => {
+    try {
+      await api.approveJoinRequest(requestId);
+      setSuccess("Member approved");
+      loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to approve");
+    }
+  };
+
+  const handleDecline = async (requestId: number) => {
+    try {
+      await api.declineJoinRequest(requestId);
+      setSuccess("Request declined");
+      loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to decline");
     }
   };
 
@@ -111,9 +134,41 @@ export default function CommunityAdminPage() {
                 <Input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder="community-code" />
                 <Button type="submit" disabled={saving} className="bg-emerald-600 hover:bg-emerald-700"><Save className="w-4 h-4 mr-1" /> Save</Button>
               </div>
-              <p className="text-xs text-gray-400">Members use this code to join.</p>
+              <p className="text-xs text-gray-400">Members use this code to request to join.</p>
             </div>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-4">
+        <CardContent className="p-4 space-y-3">
+          <h2 className="font-semibold text-gray-700 flex items-center gap-2"><UserPlus className="w-4 h-4" /> Join Requests</h2>
+          {joinRequests.length === 0 ? (
+            <p className="text-sm text-gray-400">No pending join requests</p>
+          ) : (
+            <div className="space-y-2">
+              {joinRequests.map((req) => (
+                <div key={req.id} className="flex items-center justify-between p-2 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    {req.avatar_url ? (
+                      <img src={req.avatar_url} alt={req.full_name} className="w-8 h-8 rounded-full object-cover" />
+                    ) : (
+                      <span className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">{req.full_name?.charAt(0)?.toUpperCase()}</span>
+                    )}
+                    <div>
+                      <p className="text-sm font-medium">{req.full_name}</p>
+                      <p className="text-xs text-gray-400">{req.email}</p>
+                      {req.message && <p className="text-xs text-gray-500 italic">{req.message}</p>}
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => handleApprove(req.id)}><Check className="w-3 h-3" /></Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDecline(req.id)}><X className="w-3 h-3" /></Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
