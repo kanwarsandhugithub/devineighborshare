@@ -489,53 +489,54 @@ export default function HomePage() {
             </DialogContent>
           </Dialog>
 
-          <div className="relative inline-block">
-            <Button
-              size="sm"
-              className="bg-emerald-600 hover:bg-emerald-700"
-              onClick={() => setShowCreateMenu(!showCreateMenu)}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-            {showCreateMenu && (
-              <div className="absolute right-0 top-10 w-56 bg-white rounded-lg shadow-lg border z-50 py-1">
-                <button
-                  onClick={handleListItem}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm"
-                >
-                  <Package className="w-4 h-4 text-emerald-600" />
-                  List an Item
-                </button>
-                <button
-                  onClick={handlePostService}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm"
-                >
-                  <Wrench className="w-4 h-4 text-blue-600" />
-                  Post a Service
-                </button>
-                <button
-                  onClick={handleAskFavor}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm"
-                >
-                  <Send className="w-4 h-4 text-purple-600" />
-                  Ask a Favor
-                </button>
-                <button
-                  onClick={handleCommunityPost}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm"
-                >
-                  <MessageSquare className="w-4 h-4 text-orange-600" />
-                  Community Post
-                </button>
-              </div>
-            )}
-          </div>
+          {communities.length > 0 && (
+            <div className="relative inline-block">
+              <Button
+                size="sm"
+                className="bg-emerald-600 hover:bg-emerald-700"
+                onClick={() => setShowCreateMenu(!showCreateMenu)}
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+              {showCreateMenu && (
+                <div className="absolute right-0 top-10 w-56 bg-white rounded-lg shadow-lg border z-50 py-1">
+                  <button
+                    onClick={handleListItem}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm"
+                  >
+                    <Package className="w-4 h-4 text-emerald-600" />
+                    List an Item
+                  </button>
+                  <button
+                    onClick={handlePostService}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm"
+                  >
+                    <Wrench className="w-4 h-4 text-blue-600" />
+                    Post a Service
+                  </button>
+                  <button
+                    onClick={handleAskFavor}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm"
+                  >
+                    <Send className="w-4 h-4 text-purple-600" />
+                    Ask a Favor
+                  </button>
+                  <button
+                    onClick={handleCommunityPost}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm"
+                  >
+                    <MessageSquare className="w-4 h-4 text-orange-600" />
+                    Community Post
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
-          {user?.email === "kanwarsandhu@gmail.com" && (
-            <Dialog open={showCreate} onOpenChange={setShowCreate}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-1" /> Create</Button>
-              </DialogTrigger>
+          <Dialog open={showCreate} onOpenChange={setShowCreate}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-1" /> Create</Button>
+            </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Create Community</DialogTitle></DialogHeader>
               <form onSubmit={handleCreate} className="space-y-4">
@@ -556,7 +557,6 @@ export default function HomePage() {
               </form>
             </DialogContent>
           </Dialog>
-          )}
         </div>
       </div>
 
@@ -566,8 +566,12 @@ export default function HomePage() {
         <Card className="text-center py-12">
           <CardContent>
             <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 mb-2">No communities yet</p>
-            <p className="text-gray-400 text-sm">Create a new community or join one with a code</p>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">Welcome, {user?.full_name}!</h2>
+            <p className="text-gray-500 mb-6">Create your own community or join one with a code to get started.</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button size="lg" variant="outline" onClick={() => setShowJoin(true)}><LogIn className="w-4 h-4 mr-2" /> Join a Community</Button>
+              <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setShowCreate(true)}><Plus className="w-4 h-4 mr-2" /> Create a Community</Button>
+            </div>
           </CardContent>
         </Card>
       ) : (
