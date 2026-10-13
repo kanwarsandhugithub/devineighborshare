@@ -804,9 +804,14 @@ export default function CommunityPage() {
                     </Button>
                   </>
                 ) : isAdmin ? (
-                  <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50" onClick={() => { setShowItemDetail(false); handleDeleteItem(selectedItem.id); }}>
-                    <Trash2 className="w-4 h-4 mr-1" /> Delete as Admin
-                  </Button>
+                  <>
+                    <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700" onClick={() => { setShowItemDetail(false); setShowRentDialog(true); }}>
+                      Rent
+                    </Button>
+                    <Button variant="outline" className="flex-1 text-red-600 border-red-200 hover:bg-red-50" onClick={() => { setShowItemDetail(false); handleDeleteItem(selectedItem.id); }}>
+                      <Trash2 className="w-4 h-4 mr-1" /> Delete as Admin
+                    </Button>
+                  </>
                 ) : (
                   <>
                     <Button variant="outline" className="flex-1" onClick={() => { setShowItemDetail(false); handleMessage(selectedItem.owner_id); }}>
@@ -866,9 +871,14 @@ export default function CommunityPage() {
                     </Button>
                   </>
                 ) : isAdmin ? (
-                  <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50" onClick={() => { setShowServiceDetail(false); handleDeleteService(selectedService.id); }}>
-                    <Trash2 className="w-4 h-4 mr-1" /> Delete as Admin
-                  </Button>
+                  <>
+                    <Button className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={() => { setShowServiceDetail(false); setShowBookDialog(true); }}>
+                      Book
+                    </Button>
+                    <Button variant="outline" className="flex-1 text-red-600 border-red-200 hover:bg-red-50" onClick={() => { setShowServiceDetail(false); handleDeleteService(selectedService.id); }}>
+                      <Trash2 className="w-4 h-4 mr-1" /> Delete as Admin
+                    </Button>
+                  </>
                 ) : (
                   <>
                     <Button variant="outline" className="flex-1" onClick={() => { setShowServiceDetail(false); handleMessage(selectedService.provider_id); }}>
