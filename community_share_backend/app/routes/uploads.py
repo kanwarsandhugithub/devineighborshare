@@ -1,7 +1,9 @@
+import io
 import os
 import uuid
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 from fastapi.responses import FileResponse
+from PIL import Image
 from app.utils.auth import get_current_user_id
 
 router = APIRouter(prefix="/api/uploads", tags=["uploads"])
@@ -20,10 +22,25 @@ async def upload_file(file: UploadFile = File(...), current_user_id: int = Depen
     if file.size and file.size > 20 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File too large (max 20MB)")
 
-    filename = f"{uuid.uuid4().hex}{ext}"
-    filepath = os.path.join(UPLOAD_DIR, filename)
-
     content = await file.read()
+
+    if ext == ".gif":
+        filename = f"{uuid.uuid4().hex}{ext}"
+    else:
+        try:
+            image = Image.open(io.BytesIO(content))
+            if image.mode in ("RGBA", "P", "LA", "L"):
+                image = image.convert("RGB")
+            # Resize images larger than 1600px on any side and compress
+            image.thumbnail((1600, 1600), Image.LANCZOS)
+            output = io.BytesIO()
+            image.save(output, format="JPEG", quality=85, optimize=True)
+            content = output.getvalue()
+            filename = f"{uuid.uuid4().hex}.jpg"
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid image file")
+
+    filepath = os.path.join(UPLOAD_DIR, filename)
     with open(filepath, "wb") as f:
         f.write(content)
 
