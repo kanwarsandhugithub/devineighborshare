@@ -17,8 +17,8 @@ async def upload_file(file: UploadFile = File(...), current_user_id: int = Depen
     if ext not in (".jpg", ".jpeg", ".png", ".gif", ".webp"):
         raise HTTPException(status_code=400, detail="Only image files are allowed (jpg, png, gif, webp)")
 
-    if file.size and file.size > 5 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="File too large (max 5MB)")
+    if file.size and file.size > 20 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large (max 20MB)")
 
     filename = f"{uuid.uuid4().hex}{ext}"
     filepath = os.path.join(UPLOAD_DIR, filename)
