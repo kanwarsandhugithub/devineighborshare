@@ -3,7 +3,7 @@ import os
 import uuid
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 from fastapi.responses import FileResponse
-from PIL import Image
+from PIL import Image, ImageOps
 from app.utils.auth import get_current_user_id
 
 router = APIRouter(prefix="/api/uploads", tags=["uploads"])
@@ -29,6 +29,7 @@ async def upload_file(file: UploadFile = File(...), current_user_id: int = Depen
     else:
         try:
             image = Image.open(io.BytesIO(content))
+            image = ImageOps.exif_transpose(image)
             if image.mode in ("RGBA", "P", "LA", "L"):
                 image = image.convert("RGB")
             # Resize images larger than 1600px on any side and compress
